@@ -1,0 +1,17 @@
+{
+  "name": "leuven-discount",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "鲁汶超市每周折扣聚合",
+  "scripts": {
+    "scrape": "node scripts/scrape.js",
+    "build": "node scripts/build.js",
+    "refresh": "npm run scrape && npm run build",
+    "inspect:carrefour": "node scripts/inspect-carrefour.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0"
+  },
+  "engines": { "node": ">=20" }
+}

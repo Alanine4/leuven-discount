@@ -1,0 +1,45 @@
+name: 每周刷新折扣
+
+on:
+  schedule:
+    # Aldi/Lidl 周一换传单，Delhaize/Carrefour/Colruyt 周三换。UTC 时间（比利时夏令时 -2h）
+    - cron: '0 5 * * 1'
+    - cron: '0 5 * * 3'
+  workflow_dispatch:        # 也可以在 GitHub 页面上手动点一下就跑
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci || npm install
+
+      - name: 抓取
+        run: npm run scrape
+
+      - name: 出页面
+        run: npm run build
+
+      - name: 补中文名（没配 API key 就自动跳过）
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/translate.js && npm run build
+
+      - name: 提交数据
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data public lib/glossary.json
+          git diff --staged --quiet || git commit -m "折扣数据刷新 $(date +%F)"
+          git push
+
+      - name: 抓取结果摘要
+        if: always()
+        run: cat data/raw/_report.json >> $GITHUB_STEP_SUMMARY
