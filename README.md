@@ -16,7 +16,7 @@ npm test                # 跑单元测试
 
 然后浏览器打开 `public\index.html`。
 
-只想试一家：`node scripts/scrape.js <store>`，比如 `node scripts/scrape.js lidl`。可选的 store 有 lidl、colruyt、carrefour、aldi、ah。
+只想试一家：`node scripts/scrape.js <store>`，比如 `node scripts/scrape.js lidl`。可选的 store 有 lidl、colruyt、carrefour、aldi、ah。ah 会真的弹出一个浏览器窗口（Edge 或 Chrome），这是绕过 ah.be 反爬的必要条件，不是 bug。
 
 ## 数据来源
 
@@ -24,9 +24,9 @@ npm test                # 跑单元测试
 |---|---|---|
 | Lidl | 官网搜索接口返回的 JSON，免鉴权 | 可用 |
 | Colruyt | 第三方镜像的公开 GCS bucket，每日更新一次全量数据 | 可用 |
-| Carrefour | 官网促销页服务端渲染，Playwright 取页 + cheerio 解析 | 可用 |
+| Carrefour Market / Express | 各自店型的促销页服务端渲染，Playwright 取页 + cheerio 解析 | 可用 |
 | ALDI | 官网 aanbiedingen 页里嵌的 `__NEXT_DATA__`，裸 fetch 即可 | 可用 |
-| Albert Heijn | ah.be 全站返回 403，暂时抓不了 | 待解决 |
+| Albert Heijn | ah.be 挂 Akamai，无头请求会 403，改用有头浏览器绕过 | 可用 |
 | Delhaize | 全站 JS 渲染加反爬网关，还没做 | 待做 |
 
 ## 每周自动更新
@@ -43,7 +43,7 @@ npm test                # 跑单元测试
 
 不依赖逐个商品翻译。页面里有一份中文→荷/法/英的同义词表（`web/template.html` 里的 `SYN`），
 搜「意面」时把查询扩展成 pasta / spaghetti / penne / lasagne 再去匹配商品原名。
-所以**没有中文译名也能搜到**；`lib/glossary.json` 里的译名只是为了显示好看，会随着每周运行慢慢积累。
+所以**没有中文译名也能搜到**；`lib/glossary.json` 里的译名只是为了显示好看，现在已经有 3667 条（人工分批翻译写入），本周约 95% 的商品有中文名，剩下的新商品靠每周运行慢慢积累。
 
 拉丁词用词首匹配，所以搜 `pasta` 不会跳出 `tandpasta`（牙膏）。
 

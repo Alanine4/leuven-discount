@@ -53,22 +53,23 @@
 | 部分 | 状态 | 说明 |
 |---|---|---|
 | 仓库骨架 | ✅ 完成 | package.json / 目录结构 / .gitignore / vercel.json |
-| 折扣力度算法 | ✅ 完成 | `lib/normalize.js`，62 个单测全绿（`npm test`） |
+| 折扣力度算法 | ✅ 完成 | `lib/normalize.js`，68 个单测全绿（`npm test`） |
 | 品类归并 | ✅ 完成 | `lib/categorize.js`，荷/法/英关键词 → 19 个中文品类 |
 | Lidl 抓取 | ✅ 已跑通 | 本周 272 条，去重后 268 条 |
-| Colruyt 抓取 | ✅ 已跑通 | 本周 1376 条，去重后 1370 条 |
-| Carrefour 抓取 | ✅ 已跑通 | 本周 1680 条，去重后 1673 条 |
+| Colruyt 抓取 | ✅ 已跑通 | 本周约 1368 条 |
+| Carrefour Market 抓取 | ✅ 已跑通 | 本周约 954 条，见第 4 节 |
+| Carrefour Express 抓取 | ✅ 已跑通 | 本周约 92 条，覆盖率比 Market 低，见第 4 节 |
 | ALDI 抓取 | ✅ 已跑通 | 本周 379 条，去重后 378 条 |
-| AH 抓取 | ⛔ 卡住 | ah.be 全站 403，已移出默认抓取清单，见第 4 节 |
+| AH 抓取 | ✅ 已跑通 | 本周约 68 条，靠有头浏览器绕过 Akamai，见第 4 节；CI 里的 xvfb 方案还没实测过，见第 7 节 |
 | Delhaize 抓取 | ⛔ 未开始 | 见第 4 节 |
-| 合并/出页面 | ✅ 完成 | `scripts/build.js`，四家合计去重后 3689 条，有折扣力度 3138 条，品类「其他」405 条 |
-| 中文名词表 | ✅ 机制完成，词表是空的 | `scripts/translate.js` + `lib/glossary.json`，还没配 `ANTHROPIC_API_KEY` |
+| 合并/出页面 | ✅ 完成 | `scripts/build.js`，六家合计约 3128 条 |
+| 中文名词表 | ✅ 已冷启动 | `lib/glossary.json` 现有 3667 条（人工分批翻译写入），本周约 95% 商品有中文名；新品的增量翻译仍靠 `scripts/translate.js`，还没配 `ANTHROPIC_API_KEY` |
 | 网页模板 | ✅ 完成 | `web/template.html`，搜索/筛选/排序都做好了 |
-| GitHub Actions | ⚠️ 已推上去，还没在 CI 里跑过 | 已加 `npx playwright install --with-deps chromium`；周一、周三定时触发，也可以在 Actions 页手动 workflow_dispatch |
+| GitHub Actions | ⚠️ 已推上去，AH 那部分还没在 CI 里跑过 | 已加 `npx playwright install --with-deps chromium` 和 `xvfb`，抓取步骤用 `xvfb-run` 包一层；周一、周三定时触发，也可以在 Actions 页手动 workflow_dispatch |
 | 推到 GitHub | ✅ 完成 | https://github.com/Alanine4/leuven-discount ，公开仓库，分支 `main` |
 | Vercel 部署 | ✅ 完成 | https://leuven-zhekou.vercel.app ，项目名 `leuven-zhekou`（团队 Yichuan's projects），推送即自动部署 |
 
-**一句话总结当前位置**：四家（Lidl、Colruyt、Carrefour、ALDI）端到端跑通了，`npm run refresh` 一次拉完 3689 条，`npm test` 62 个用例全绿。浏览器验收也做过：本地起 `python -m http.server 8765 -d public`，用 Playwright 脚本（`data/debug/check-page.mjs`、`check-search.mjs`，已 gitignore）搜「意面」42 条全是意面没有牙膏，「鸡肉」不再混进猫粮狗粮，「三文鱼」只出 zalm，来源链接全是官方域名，没有 JS 报错，手机视口下布局正常。AH 因为 Akamai 403 卡住，进了 backlog；Delhaize 还没动。仓库在 GitHub（Alanine4/leuven-discount），线上链接 https://leuven-zhekou.vercel.app ，推送自动部署。唯一还没做、也只有用户能做的一步：拿真实超市 app 里的传单核对几条价格（见第 7 节第 1 步）。
+**一句话总结当前位置**：六家（Lidl、Colruyt、ALDI、Carrefour Market、Carrefour Express、Albert Heijn）端到端跑通了，`npm run refresh` 一次拉完约 3128 条，`npm test` 68 个用例全绿。浏览器验收也做过：本地起 `python -m http.server 8765 -d public`，用 Playwright 脚本（`data/debug/check-page.mjs`、`check-search.mjs`，已 gitignore）搜「意面」42 条全是意面没有牙膏，「鸡肉」不再混进猫粮狗粮，「三文鱼」只出 zalm，来源链接全是官方域名，没有 JS 报错，手机视口下布局正常。AH 靠有头浏览器绕过了 Akamai（见第 4 节），但这个方案还没在 GitHub Actions 的 CI 环境里实测过；Delhaize 还没动。仓库在 GitHub（Alanine4/leuven-discount），线上链接 https://leuven-zhekou.vercel.app ，推送自动部署。下一步见第 7 节，第一件事是手动触发一次 Actions 确认 AH 在 CI 里能不能过 Akamai。
 
 ---
 
@@ -85,14 +86,14 @@ C:\Projects\Leuven_discount\
 │   ├── normalize.js               # 统一 schema + 折扣力度计算 + 去重 + 带重试的 get()
 │   ├── categorize.js              # 各店分类名 → 19 个中文品类
 │   ├── browser.js                 # Playwright 封装：fetchHTML / fetchJSON / sniff
-│   └── glossary.json              # 商品原名 → 中文名（目前是空的 {}）
+│   └── glossary.json              # 商品原名 → 中文名（现有 3667 条，人工分批写入）
 │
 ├── scrapers/                      # 每家一个，都导出 default async function，返回 normalize 过的数组
 │   ├── lidl.js                    # ✅ 已跑通
 │   ├── colruyt.js                 # ✅ 已跑通
 │   ├── carrefour.js               # ✅ 已跑通
 │   ├── aldi.js                    # ✅ 已跑通
-│   └── ah.js                      # ⛔ ah.be 全站 403，见第 4 节
+│   └── ah.js                      # ✅ 已跑通，有头浏览器绕过 Akamai，见第 4 节
 │
 ├── scripts/
 │   ├── scrape.js                  # 跑默认清单的 scraper → data/raw/*.json（单家失败不影响其他家）
@@ -176,24 +177,36 @@ https://apip.colruyt.be/gateway/ictmgmt.emarkecom.cgproductretrsvc.v2/v2/v2/nl/p
 - 本周约 209 个唯一促销 id，上限设的 400。
 - Colruyt 价格是按门店浮动的（官方 FAQ 说每家店对标本地竞争对手定价），bucket 用的是作者自己那个 placeId，不是鲁汶。**目前接受这个误差。**
 
-### Carrefour（已跑通）
+### Carrefour（已跑通，拆成 Market / Express 两个 store）
+
+不再抓全国目录 `al-onze-promoties`（1680 条，含大卖场独有商品，鲁汶用不上）。改抓店型专用促销页，DOM 结构和全国目录完全一样：
 
 ```
-https://www.carrefour.be/nl/al-onze-promoties?p=N
+https://www.carrefour.be/nl/al-onze-market-promoties?p=N   # 本周 958 条，27 页
+https://www.carrefour.be/nl/al-onze-express-promoties?p=N  # 本周 92 条，3 页
 ```
+
+`al-onze-hyper-promoties` 是 404。输出两个 store：`Carrefour Market`（`store_zh` 是 `家乐福 Market`）和 `Carrefour Express`（`家乐福 Express`），同一商品在两个店各保留一条（`normalize()` 按 store 去重不会合并）。整趟约 2 分钟。
 
 - 商品卡片是 `div.product.js-product[data-pid]`，每页 40 个，其中 4 个 `.js-einstein-tile` 是推荐位，要排除。商品名在 `.desktop-name`，品牌在 `.brand-wrapper a`，价格在 `.value[content]`，每单位价在 `.price-per-unit-wrapper`，促销文案在 `.promo-label`，有效期在 `.promo-validity-date`（格式 "t.e.m. DD/MM/YYYY"），图片是 `.tile-image` 的 `src` 或 `data-src`（懒加载）。
-- 总数读 `data-total-items`（如 `"1680.0"`），本周 47 页，整趟约 5 分钟。
+- Express 页面本身大多数商品不标折扣文案和有效期（有 `pct` 的约 17%、有 `ends` 约 20%），Market 96% 以上。这是数据源本身的限制，不是解析漏了。
+- 商品名偶尔是 Latin-1 乱码（`PralinÃ©`），`parsePage()` 里已按字节还原。原名里还混着西里尔字母的错字（如 `Кір` 应为 `Kip`），这是源数据本身的问题，没有处理。
+- 总数读 `data-total-items`（如 `"958.0"`）。
 - 品类是码（如 `ros016`），映射表从导航菜单 `[data-gtm-nav-cta="products:rosXXX>名字"]` 每次现解析，不硬编码。
 - 促销文案里有 24 种解析不出折扣（`3 voor 6€`、`-1€`、`Bonuspunten` 等），现在前两类能算出来了。
 - **robots 红线**：禁 `?pmid=` 和 `/search?q=`，末尾还有兜底 `Disallow: /`（只白名单了 Googlebot 等）。只走 `?p=N`，限速 1-2 秒，带真实 UA。
-- 分不出 Market / Express 店型，这是全国线上促销目录，抓到的是超集。**目前接受这个超集。**
 
-### Albert Heijn（卡住，403）
+### Albert Heijn（已跑通，靠有头浏览器绕过 Akamai）
 
-- 本机 curl 和无头 Chromium 对 `www.ah.be` 一律返回 403（Akamai "Access Denied"），连商品详情页也 403，`/zoeken/api/` 是 500。GitHub Actions 的 IP 只会更差。
-- `scrapers/ah.js` 保留，但已经移出 `scripts/scrape.js` 的默认清单（放进 `EXTRA`），单独跑 `node scripts/scrape.js ah` 仍然可以执行，只是照样会 403。
-- 放进 backlog。可选方案是 Apify 的比利时专用 scraper（付费）或者住宅代理，两个都还没试。
+- 根因：ah.be 挂 Akamai Bot Manager，按浏览器指纹拦，`headless` 是判据。curl、Playwright 无头（含 headless shell 和无头 Edge）一律 403，**有头浏览器能过**。
+- 方案：`lib/browser.js` 新增 `headedBrowser()` / `headedPage()`，依次尝试 `channel:'msedge'` → `'chrome'` → 自带 chromium，都是 `headless:false` + `--disable-blink-features=AutomationControlled`，有头 context 不覆盖 UA（真实指纹才能过）。`scrapers/ah.js` 有头打开 `https://www.ah.be/bonus`，再在 `page.evaluate()` 里同源 `fetch('/gql')`。
+- 接口：`POST https://www.ah.be/gql`，GraphQL 查询 `bonusCategories(filterSet: WEB_CATEGORIES, input: $input)`，`variables.input` 里 `states:["NONE","ACTIVATED","ASSIGNED"]`、`segmentType:["NEGATE_PREMIUM"]`、`hideVariants:true`、`forcePromotionVisibility:true`。**`weekNumber` 参数无效**（37 改 38 返回同一批），真正的过滤器是 `periodStart`/`periodEnd`，两者留 null 会返回本周 + 下周的并集，所以只发 1 次请求。本周返回 23 个品类 82 组促销，排除 14 组网购送货优惠（`gratis levering`）后剩 68 条。
+- 字段：每个 promotion 是一组（可能多商品，看 `productCount`），单品时 `product` 非空（含 `brand`、`webPath`）。`price.was`/`price.now` 是**同一份量的整组价**（`3 voor 5.00` → now 5.00，was 6.87），所以折扣直接走价格比，不套 Carrefour 那套"N voor €X"/"€N korting"文案换算逻辑；`%korting` → `-N%`、`N+M gratis` 原样、`2e halve prijs` → `2de aan -50%`。本周 68 条 `pct` 和价格比全部一致，`unc` 0 条。
+- CI：`.github/workflows/refresh.yml` 加了 `sudo apt-get install -y xvfb`，抓取步骤改成 `xvfb-run -a --server-args="-screen 0 1280x800x24" npm run scrape`。**这个方案还没在 CI 里跑过**（要手动触发一次 Actions 验证，见第 7 节）；未验证的点是 GitHub runner 的出口 IP 会不会被 Akamai 单独拦。
+- `scripts/scrape.js` 里 `ah` 已经回到默认清单 `SOURCES`（排最后，因为它要开有头浏览器）。
+- 只在周四这一天观测过：`periodStart:null` 返回并集、`weekNumber` 无效、价格是整组价，都没有跨周样本验证。如果周六 AH 发布下周传单后行为变了，下周的数据可能会漏；代码里"下周起"的文案分支已经写好，但没实测过。
+- `unit` 恒为空（接口不给每公斤价）；`salesUnitSize` 拼进了 `name`。
+- 探针脚本在 `data/debug/`（已 gitignore）：`probe-ah-headed.mjs`、`probe-ah-full.mjs`、`probe-ah-week.mjs`、`probe-ah-period.mjs`。
 
 ### ALDI（已跑通）
 
@@ -255,13 +268,15 @@ https://www.carrefour.be/nl/al-onze-promoties?p=N
 
 **不需要给每个商品都翻译中文名。** 页面里（`web/template.html` 的 `SYN` 常量）有一份中文→荷/法/英同义词表，搜索时把「意面」扩展成 `pasta / spaghetti / penne / fusilli / tagliatelle / lasagne / macaroni` 再去匹配商品原名。
 
-所以**没有中文译名也能搜到**。`lib/glossary.json` 里的译名只影响显示好不好看，会随每周运行慢慢积累（`scripts/translate.js`，配了 `ANTHROPIC_API_KEY` 才跑，翻过的不会重翻）。
+所以**没有中文译名也能搜到**。`lib/glossary.json` 里的译名只影响显示好不好看，现在已经冷启动过：由 6 个子 agent 分批人工翻译现有商品名写入，现有 3667 条，本周约 3128 条商品里约 95% 有中文名。页面显示中文名在上、原名在下。每周新商品的增量翻译仍靠 `scripts/translate.js`（模型 ID 已更新为 `claude-opus-5`），配了 `ANTHROPIC_API_KEY` 才跑（还没配），翻过的不会重翻。
+
+已知质量问题：品牌译法各批不一致（有的用中文商标名如「克特多金象」，有的保留原文）；约 25 条无品牌无上下文的条目是猜的（已标注，如「Red 70 cl」「Complete Fresh」）；`data/untranslated.json` 里现在剩的是家乐福店型页新出现的商品名。
 
 **匹配规则**：中文查询按包含匹配；拉丁词按**词首**匹配（`\bpasta`）。这样搜 `pasta` 不会命中 `tandpasta`（牙膏），这是实际踩到的问题。词首匹配是有意的，因为 `kip` 要能命中 `kipfilet`。
 
 ### 5.3 品类归并：toCat() 的匹配规则
 
-关键词 trim 后如果长度小于等于 4 个字母，按词首或词尾命中都算（荷兰语复合词的中心词往往在词尾，`kokosmelk` / `abdijkaas` 要能命中；但 `shampoo` 里的 `ham` 不能算命中）。`pasta`、`eau`、`ijs` 这三个关键词单独处理，只认词首匹配，因为 `tandpasta`（牙膏）、`bureau`（办公桌）、`knalprijs`（爆炸价）都是靠词尾巧合撞上的假阳性。长度大于等于 5 个字母的关键词仍然走子串匹配。`roomijs`（归到零食甜点）和 `fruitsap`（归到饮料）这两个走 `OVERRIDES` 特例表，不走通用规则。带尾部空格的老关键词（比如 `'ei '`）保留原来的纯词首匹配方式。
+关键词 trim 后如果长度小于等于 4 个字母，按词首或词尾命中都算（荷兰语复合词的中心词往往在词尾，`kokosmelk` / `abdijkaas` 要能命中；但 `shampoo` 里的 `ham` 不能算命中）。`pasta`、`eau`、`ijs` 这三个关键词单独处理，只认词首匹配，因为 `tandpasta`（牙膏）、`bureau`（办公桌）、`knalprijs`（爆炸价）都是靠词尾巧合撞上的假阳性。长度大于等于 5 个字母的关键词仍然走子串匹配。`roomijs`（归到零食甜点）和 `fruitsap`（归到饮料）这两个走 `OVERRIDES` 特例表，不走通用规则。带尾部空格的老关键词（比如 `'ei '`）保留原来的纯词首匹配方式。已加一个 `PRIORITY` 子串规则表，在主循环前先判断（如 `zuivel` → 乳制品奶酪、`maaltijd` → 冷冻速食），修了 AH 分类名 `Zuivel, eieren` 被误判成肉禽蛋、`Maaltijden, salades` 被误判成果蔬的问题。
 
 ### 5.4 去重
 
@@ -271,19 +286,21 @@ https://www.carrefour.be/nl/al-onze-promoties?p=N
 
 `web/template.html` 已经做完了，包含中文搜索框、常用词快捷键、按超市/品类筛选、按折扣力度或价格排序、明暗主题、手机优先。**不要重写设计**，改功能就行。数据用 `/*__DATA__*/` 占位符注入。
 
-店名映射按 `store` 这个英文 key 走（`STORE_LABEL`），筛选值用的也是 `store`，`meta.stores` 也按 `store` 计数。同义词表查找时精确 key 优先命中，没有精确 key 才做包含式扩展。搜食品类词时会排除 `cat === '宠物'` 的商品，但如果查询本身包含猫、狗、宠这些字，或者扩展出了 kat / hond 这类词，或者用户直接选了宠物品类做筛选，就不排除。来源链接指向官方商品页：Carrefour 是促销页链接，ALDI 是 aanbiedingen 页链接，Lidl 和 Colruyt 目前只能链到首页。页面顶部的统计条文案是「N 件本周促销 / N 件标了折扣 / N 件五折起 / 更新于...」。商品名可以点击跳到官网。
+19 个品类各配了一个 16px 单色线性 SVG 图标（`CAT_ICON`），放在卡片元信息行品类名前面，风格和搜索/箭头图标一致（用户要的是"线条风格不花哨的 emoji"，实现成线性 SVG）。
+
+店名映射按 `store` 这个英文 key 走（`STORE_LABEL`），筛选值用的也是 `store`，`meta.stores` 也按 `store` 计数。`STORE_LABEL` 已经加了 `Carrefour Market`/`Carrefour Express` 两个 key，店铺标签的显示文案用户明确说保持现状不改。同义词表查找时精确 key 优先命中，没有精确 key 才做包含式扩展。搜食品类词时会排除 `cat === '宠物'` 的商品，但如果查询本身包含猫、狗、宠这些字，或者扩展出了 kat / hond 这类词，或者用户直接选了宠物品类做筛选，就不排除。来源链接（`SRC`）指向官方商品页：Colruyt 改成了 `https://www.colruyt.be/nl/acties`，Lidl 改成了 `https://www.lidl.be/l/nl-BE/folder`，Carrefour Market/Express 各指自己的促销页，ALDI 是 aanbiedingen 页链接。页面顶部的统计条文案是「N 件本周促销 / N 件标了折扣 / N 件五折起 / 更新于...」。商品名可以点击跳到官网。
 
 ---
 
 ## 6. 已知卡点
 
-### 6.1 Vercel 里留了两个空壳项目
+### 6.1 Vercel MCP 读不到这个团队的项目
 
-通过 Vercel MCP 的 API 建项目时，`leuven-discount` 和 `leuven-deals` 两个名字被建成了空壳（API 报已存在，列表和读取都 404），所以线上项目用了 `leuven-zhekou`。这两个空壳不影响使用，用户想清理的话在 Vercel 控制台里删。Vercel MCP 在本机对这个团队的项目读取一律 404/403，用它查部署状态不可靠，改用 `gh api repos/Alanine4/leuven-discount/deployments` 或直接 curl 线上链接。GitHub Actions 还没在 CI 里真正跑过一次。
+Vercel MCP 在本机对团队项目的读取一律 404/403，用它查部署状态不可靠，改用 `gh api repos/Alanine4/leuven-discount/deployments` 或直接 curl 线上链接。线上项目 `leuven-zhekou` 是用户在控制台导入的。
 
-### 6.2 Albert Heijn 全站 403
+### 6.2 Albert Heijn 全站 403（已解决）
 
-本机 curl 和无头 Chromium 对 `www.ah.be` 一律 403（Akamai "Access Denied"），GitHub Actions 的 IP 只会更差，不是本地网络的问题。`scrapers/ah.js` 已移出默认抓取清单。backlog 里两个可选方案是 Apify 的比利时专用 scraper（付费）和住宅代理，都还没试，见第 4 节。
+本机 curl 和无头 Chromium 对 `www.ah.be` 一律 403（Akamai "Access Denied"），根因是 Akamai 按 `headless` 判据拦截，改用有头浏览器（`headless:false`）就能拿到 200，详细方案见第 4 节。剩下唯一没验证的是 GitHub Actions 的 CI 环境（用 xvfb 起虚拟显示）能不能一样过关，见第 7 节第 1 步。
 
 ### 6.3 Delhaize 未开始
 
@@ -293,10 +310,11 @@ https://www.carrefour.be/nl/al-onze-promoties?p=N
 
 ## 7. 下一步做什么（按顺序）
 
-1. 用户在超市 app 里随便挑 5 条对价（Carrefour 尤其要对，它是全国目录，抓到的是超集）。
-2. 在 GitHub Actions 页手动触发一次 workflow_dispatch，确认 CI 里能跑通（Playwright 装浏览器那步没在 CI 验过）。
-3. 配 `ANTHROPIC_API_KEY` secret，让中文词表开始积累。
-4. 做 Delhaize；AH 看是否值得走付费方案。
+1. 手动触发一次 Actions 确认 AH 在 CI 的 xvfb 下能过 Akamai（这是当前最大的未知）。
+2. 周六以后看一次 AH 是否带出下周数据。
+3. 用户对价（Carrefour Market 尤其）。
+4. 配 `ANTHROPIC_API_KEY` secret，让中文词表的增量翻译开始跑。
+5. 做 Delhaize。
 
 ---
 
@@ -307,12 +325,16 @@ https://www.carrefour.be/nl/al-onze-promoties?p=N
 - **品类「其他」占比偏高**：3689 条里 405 条（11%）落进「其他」，主要是 Colruyt 的 "Niet-voeding" / "Kruidenierswaren/Droge voeding" 泛类目，和 ALDI 营销版块下没有分类字段的商品。
 - **咖啡茶品类样本极少**：只有 2 条，怀疑是 Carrefour 的咖啡分类名没被关键词表命中，还没查。
 - **单店模式会覆盖 report**：`node scripts/scrape.js lidl` 这种单店跑法会把 `data/raw/_report.json` 覆盖成只剩这一家的记录，CI 是全量跑不受影响，但本地单独调试某一家时别把这个当整体状态判断。
-- **Carrefour 店型过滤**：现在拿到的是全国超集，鲁汶只有 Market/Express，没想到好办法。
 - **Colruyt 鲁汶门店价**：现在用的是 bucket 里别人那个 placeId 的价格。
 - **价格历史对比**：`data/history/` 每周一个快照，天然有数据了，可以做「这周是不是真便宜、比上个月的价格如何」这类判断，用户提过想要。
-- **中文词表积累**：`lib/glossary.json` 现在是空的，配了 `ANTHROPIC_API_KEY`（见第 7 节第 3 步）之后每周自动补。
+- **中文词表积累**：`lib/glossary.json` 现有 3667 条（人工分批写入），每周新商品仍要靠 `scripts/translate.js` 增量翻译，配了 `ANTHROPIC_API_KEY`（见第 7 节第 4 步）之后才会自动跑。
 - **旧方案退役**：新链接稳定后，把那个 Claude 定时任务（`trig_01AtinoEkmHgD75MjtWmc7So`）停掉。
 - 用户提过的小功能：「只看食品」开关、收藏常买商品。
+- **AH `N voor €X` 那 16 条 `mb=0`**：页面会划掉整组原价显示整组促销价（靠 `dt` 说明），严格做法是让 `normalize()` 接受外部传入 `mb`。
+- **`toCat()` 的 `Vegetarisch, vegan en plantaardig` 归"其他"**：还没处理。
+- **词表品牌译法不统一**：有的用中文商标名（如「克特多金象」），有的保留原文，各批翻译没对齐。
+- **家乐福 Express 折扣/有效期覆盖率低**：数据源本身的限制，不是解析问题。
+- **Carrefour 原名截断**：有些商品名只剩后半段（如「met Parmigiano Reggiano 250 g」），要看详情页才能补全。
 
 ---
 
@@ -325,7 +347,7 @@ https://www.carrefour.be/nl/al-onze-promoties?p=N
 | Delhaize | 禁 `*/search/*` 和 `*/search?*` |
 | ALDI | 禁 `/*?*filters`（不要走分类筛选 URL）、`/mds/`、`/bal/`、`/can/` |
 | Colruyt | `crawl-delay: 5`；官方 API 有主动反爬（别硬刚，走 bucket） |
-| AH | `api.ah.nl` 全站 Disallow；`www.ah.be/zoeken/api/` 是允许的，但目前会 500 或 403 |
+| AH | `api.ah.nl` 全站 Disallow；`www.ah.be/bonus` 没禁，但 Akamai 只放行有头浏览器（无头一律 403） |
 | promotiez.be | 禁带 query 的 `/winkels/*?*` 和 `/promoties/*?*`。**不要做成自动爬** |
 
 通用：每周只跑一两次，带真实 UA，请求之间留 1-2 秒，别并发轰。
