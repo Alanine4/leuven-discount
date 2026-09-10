@@ -33,18 +33,9 @@ npm test                # 跑单元测试
 
 `.github/workflows/refresh.yml` 已经配好：每周一、周三早上 7 点（比利时时间）跑一次抓取和构建，把新数据提交回仓库。Vercel 监听到仓库更新后自动重新部署，Output Directory 填 `public`。
 
-要用的话：
+线上地址：https://leuven-zhekou.vercel.app （仓库 https://github.com/Alanine4/leuven-discount ）。推送到 `main` 或 Actions 提交新数据后，Vercel 会自动重新部署，链接不变。
 
-1. 在 GitHub 建个仓库，把这个目录推上去：
-
-```powershell
-git remote add origin https://github.com/<你的用户名>/leuven-discount.git
-git branch -M main
-git push -u origin main
-```
-
-2. Vercel 导入这个仓库，Output Directory 填 `public`
-3. （可选）在仓库 Settings → Secrets 里加 `ANTHROPIC_API_KEY`，自动把新商品名翻成中文
+（可选）在仓库 Settings → Secrets 里加 `ANTHROPIC_API_KEY`，Actions 会自动把新商品名翻成中文。
 
 数据每周提交进 git，所以 `data/history/` 天然是价格历史，以后可以做「这周是不是真便宜」的对比。
 

@@ -64,11 +64,11 @@
 | 合并/出页面 | ✅ 完成 | `scripts/build.js`，四家合计去重后 3689 条，有折扣力度 3138 条，品类「其他」405 条 |
 | 中文名词表 | ✅ 机制完成，词表是空的 | `scripts/translate.js` + `lib/glossary.json`，还没配 `ANTHROPIC_API_KEY` |
 | 网页模板 | ✅ 完成 | `web/template.html`，搜索/筛选/排序都做好了 |
-| GitHub Actions | ⚠️ 已补齐，没跑过 | 已加 `npx playwright install --with-deps chromium`，但还没推到 GitHub、没在 CI 里跑过 |
-| 推到 GitHub | ⛔ 未做 | 目前没有 remote，等用户点头 |
-| Vercel 部署 | ⛔ 未做 | 等仓库上 GitHub |
+| GitHub Actions | ⚠️ 已推上去，还没在 CI 里跑过 | 已加 `npx playwright install --with-deps chromium`；周一、周三定时触发，也可以在 Actions 页手动 workflow_dispatch |
+| 推到 GitHub | ✅ 完成 | https://github.com/Alanine4/leuven-discount ，公开仓库，分支 `main` |
+| Vercel 部署 | ✅ 完成 | https://leuven-zhekou.vercel.app ，项目名 `leuven-zhekou`（团队 Yichuan's projects），推送即自动部署 |
 
-**一句话总结当前位置**：四家（Lidl、Colruyt、Carrefour、ALDI）端到端跑通了，`npm run refresh` 一次拉完 3689 条，`npm test` 62 个用例全绿。浏览器验收也做过：本地起 `python -m http.server 8765 -d public`，用 Playwright 脚本（`data/debug/check-page.mjs`、`check-search.mjs`，已 gitignore）搜「意面」42 条全是意面没有牙膏，「鸡肉」不再混进猫粮狗粮，「三文鱼」只出 zalm，来源链接全是官方域名，没有 JS 报错，手机视口下布局正常。AH 因为 Akamai 403 卡住，进了 backlog；Delhaize 还没动；还没推到 GitHub，没部署 Vercel，这几步等用户点头。唯一还没做、也只有用户能做的一步：拿真实超市 app 里的传单核对几条价格（见第 7 节第 1 步）。
+**一句话总结当前位置**：四家（Lidl、Colruyt、Carrefour、ALDI）端到端跑通了，`npm run refresh` 一次拉完 3689 条，`npm test` 62 个用例全绿。浏览器验收也做过：本地起 `python -m http.server 8765 -d public`，用 Playwright 脚本（`data/debug/check-page.mjs`、`check-search.mjs`，已 gitignore）搜「意面」42 条全是意面没有牙膏，「鸡肉」不再混进猫粮狗粮，「三文鱼」只出 zalm，来源链接全是官方域名，没有 JS 报错，手机视口下布局正常。AH 因为 Akamai 403 卡住，进了 backlog；Delhaize 还没动。仓库在 GitHub（Alanine4/leuven-discount），线上链接 https://leuven-zhekou.vercel.app ，推送自动部署。唯一还没做、也只有用户能做的一步：拿真实超市 app 里的传单核对几条价格（见第 7 节第 1 步）。
 
 ---
 
@@ -277,9 +277,9 @@ https://www.carrefour.be/nl/al-onze-promoties?p=N
 
 ## 6. 已知卡点
 
-### 6.1 推 GitHub、部署 Vercel：等用户
+### 6.1 Vercel 里留了两个空壳项目
 
-git 锁文件已清，占位 remote 已删，目前仓库没有 remote。gh CLI 本机已登录账号 `Alanine4`。建 GitHub 仓库、推送、Vercel 导入（Output Directory 填 `public`）、手动触发一次 Actions，这几步都等用户点头。
+通过 Vercel MCP 的 API 建项目时，`leuven-discount` 和 `leuven-deals` 两个名字被建成了空壳（API 报已存在，列表和读取都 404），所以线上项目用了 `leuven-zhekou`。这两个空壳不影响使用，用户想清理的话在 Vercel 控制台里删。Vercel MCP 在本机对这个团队的项目读取一律 404/403，用它查部署状态不可靠，改用 `gh api repos/Alanine4/leuven-discount/deployments` 或直接 curl 线上链接。GitHub Actions 还没在 CI 里真正跑过一次。
 
 ### 6.2 Albert Heijn 全站 403
 
@@ -294,7 +294,7 @@ git 锁文件已清，占位 remote 已删，目前仓库没有 remote。gh CLI 
 ## 7. 下一步做什么（按顺序）
 
 1. 用户在超市 app 里随便挑 5 条对价（Carrefour 尤其要对，它是全国目录，抓到的是超集）。
-2. 建 GitHub 仓库、推送、Vercel 导入、手动触发一次 GitHub Actions。
+2. 在 GitHub Actions 页手动触发一次 workflow_dispatch，确认 CI 里能跑通（Playwright 装浏览器那步没在 CI 验过）。
 3. 配 `ANTHROPIC_API_KEY` secret，让中文词表开始积累。
 4. 做 Delhaize；AH 看是否值得走付费方案。
 
