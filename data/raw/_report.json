@@ -1,10 +1,11 @@
 {
- "at": "2026-09-08T20:13:25.411Z",
+ "at": "2026-09-10T09:09:07.128Z",
  "report": [
   {
    "store": "lidl",
-   "ok": false,
-   "error": "https://www.lidl.be/q/api/search?assortment=BE&locale=nl_BE&version=2.0.0&fetchsize=1000&store=1 取不到：fetch failed"
+   "ok": true,
+   "count": 272,
+   "sec": "22.9"
   }
  ]
 }

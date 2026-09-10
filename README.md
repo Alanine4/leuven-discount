@@ -24,8 +24,20 @@ npm run build           # 出页面 → public/index.html
 | Lidl | 官网内部 JSON 接口，免鉴权，一次拉完 | ✅ 可用 |
 | Colruyt | 公开 GCS bucket 上的每日全量 dump | ✅ 可用 |
 | Carrefour | 促销列表页服务端渲染，cheerio 解析 | ⚠️ **选择器待校准**，见下 |
+| AH（鲁汶 Bondgenotenlaan 64） | ah.be 的 `/zoeken/api/`，robots 允许但要带对 header | ⚠️ **接口待确认**，见下 |
 | ALDI | Next.js `__NEXT_DATA__`，需要 Playwright | ⛔ 未做 |
 | Delhaize | SAP Hybris + 反爬网关，全站 JS 渲染 | ⛔ 未做 |
+
+> AH 比利时和荷兰是**两套独立定价**（同一商品 `wi123`：ah.be €2.29 / ah.nl €1.99），
+> 所以网上那些现成的 `api.ah.nl` 封装对鲁汶没用，必须走 ah.be。
+
+### AH 接口确认
+
+```powershell
+npm run inspect:ah
+```
+
+它会试几个候选接口并打印结果。全都不通的话，输出里有一段 Playwright 抓包命令，跑完把打印出的接口地址发给 Claude。
 
 ### Carrefour 选择器校准
 
@@ -43,7 +55,14 @@ npm run inspect:carrefour
 
 要用的话：
 
-1. 在 GitHub 建个仓库，把这个目录推上去
+1. 在 GitHub 建个仓库，把这个目录推上去：
+
+```powershell
+git remote add origin https://github.com/<你的用户名>/leuven-discount.git
+git branch -M main
+git push -u origin main
+```
+
 2. Vercel 导入这个仓库，Output Directory 填 `public`
 3. （可选）在仓库 Settings → Secrets 里加 `ANTHROPIC_API_KEY`，自动把新商品名翻成中文
 

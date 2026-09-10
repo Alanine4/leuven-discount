@@ -3,10 +3,13 @@ import fs from 'node:fs';
 import lidl from '../scrapers/lidl.js';
 import colruyt from '../scrapers/colruyt.js';
 import carrefour from '../scrapers/carrefour.js';
+import ah from '../scrapers/ah.js';
+import aldi from '../scrapers/aldi.js';
 
-const SOURCES = { lidl, colruyt, carrefour };
+const SOURCES = { lidl, colruyt, carrefour, aldi };
+const EXTRA = { ah };                              // 还没打通的店：不进默认清单，但能按名字单独跑
 const only = process.argv[2];                     // node scripts/scrape.js lidl → 只跑一家
-const pick = only ? { [only]: SOURCES[only] } : SOURCES;
+const pick = only ? { [only]: SOURCES[only] || EXTRA[only] } : SOURCES;
 
 fs.mkdirSync('data/raw', { recursive: true });
 const report = [];

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="鲁汶五家超市本周折扣汇总，中文关键词可搜">
+<meta name="description" content="鲁汶各大超市本周折扣汇总，中文关键词可搜">
 <meta name="theme-color" content="#EFEEE8">
 <title>鲁汶折扣雷达</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,7 +17,7 @@
   --flash:#F2B705; --flash-ink:#1A1915;
   --deep:#C8102E; --good:#3D7A3D;
   --s-colruyt:#D4482A; --s-delhaize:#2F3E46; --s-carrefour:#1B5FA8;
-  --s-aldi:#3C7DC4; --s-lidl:#E0A800; --s-other:#7A7264;
+  --s-aldi:#3C7DC4; --s-lidl:#E0A800; --s-ah:#00ADE6; --s-other:#7A7264;
   --shadow:0 1px 2px rgba(26,25,21,.06);
   --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
   --num:"Archivo Narrow","Helvetica Neue",Arial,sans-serif;
@@ -31,7 +31,7 @@
     --flash:#F2B705; --flash-ink:#141310;
     --deep:#FF5C72; --good:#7FBF7F;
     --s-colruyt:#F0724F; --s-delhaize:#8FA9B4; --s-carrefour:#6BA8E8;
-    --s-aldi:#7FB4E8; --s-lidl:#F2C23E; --s-other:#9C9384;
+    --s-aldi:#7FB4E8; --s-lidl:#F2C23E; --s-ah:#5DD3F5; --s-other:#9C9384;
     --shadow:0 1px 2px rgba(0,0,0,.4);
   }
 }
@@ -42,7 +42,7 @@
   --flash:#F2B705; --flash-ink:#141310;
   --deep:#FF5C72; --good:#7FBF7F;
   --s-colruyt:#F0724F; --s-delhaize:#8FA9B4; --s-carrefour:#6BA8E8;
-  --s-aldi:#7FB4E8; --s-lidl:#F2C23E; --s-other:#9C9384;
+  --s-aldi:#7FB4E8; --s-lidl:#F2C23E; --s-ah:#5DD3F5; --s-other:#9C9384;
   --shadow:0 1px 2px rgba(0,0,0,.4);
 }
 *{box-sizing:border-box}
@@ -110,8 +110,11 @@ li.row.s-delhaize .bar{background:var(--s-delhaize)}
 li.row.s-carrefour .bar{background:var(--s-carrefour)}
 li.row.s-aldi .bar{background:var(--s-aldi)}
 li.row.s-lidl .bar{background:var(--s-lidl)}
+li.row.s-ah .bar{background:var(--s-ah)}
 .info{min-width:0}
 .nm{font-weight:600;font-size:14.5px;line-height:1.3;overflow-wrap:anywhere}
+.nm a{color:inherit;text-decoration:none}
+.nm a:hover{text-decoration:underline}
 .orig{font-family:var(--num);font-size:12px;color:var(--ink-3);line-height:1.35;
   overflow-wrap:anywhere}
 .meta{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:4px;
@@ -166,7 +169,7 @@ img{max-width:100%}
 <header class="top">
   <div class="kicker">Leuven · 每周超市传单</div>
   <h1>这周<span class="hl">哪里在打折</span></h1>
-  <p class="sub">大黑狮 Delhaize、大仓库 Colruyt、家乐福 Market、ALDI、Lidl 五家本周传单商品全收录。搜中文就行——输入「意面」也能搜到 pasta、spaghetti、Barilla。</p>
+  <p class="sub" id="sub"></p>
   <div class="stats" id="stats"></div>
 </header>
 
@@ -196,7 +199,7 @@ img{max-width:100%}
 <footer>
   <h3>数据来源 · 可点开核对</h3>
   <div class="srcgrid" id="srclinks"></div>
-  <p>数据来自各超市官方每周传单（经 promotiez.be 整理）。比利时的传单促销基本全国统一，鲁汶各分店同样适用；个别分店的清仓价、临期折扣不在其中。<strong>价格多为「整组/整箱」标价</strong>（例如「2+2 免费」标的是四件总价），以店内标签为准。</p>
+  <p>数据每周一、周三从各超市官网自动抓取更新。Carrefour 数据来自全国线上促销目录，鲁汶只有 Market 和 Express 店型，个别商品店里可能没有；Colruyt 价格按门店浮动，页面上的价格可能和鲁汶店差几分钱。「第二件半价」这类多件优惠显示的是单件价，折扣力度按实际优惠折算，以店内标签为准。</p>
   <p id="stamp"></p>
 </footer>
 </div>
@@ -251,37 +254,46 @@ const SYN = {
  "豆腐":["tofu"],"豆浆":["sojadrink","soja","alpro"]
 };
 
-const SCLASS = {"Colruyt":"s-colruyt","Delhaize":"s-delhaize","Carrefour Market":"s-carrefour",
-                "ALDI":"s-aldi","Lidl":"s-lidl"};
+const SCLASS = {"Colruyt":"s-colruyt","Delhaize":"s-delhaize","Carrefour":"s-carrefour",
+                "ALDI":"s-aldi","Lidl":"s-lidl","Albert Heijn":"s-ah"};
+const STORE_LABEL = {"Lidl":"Lidl","Colruyt":"大仓库 Colruyt","Carrefour":"家乐福 Carrefour",
+                "ALDI":"ALDI","Albert Heijn":"AH 阿尔伯特","Delhaize":"大黑狮 Delhaize"};
 const SRC = {
- "大仓库 Colruyt":"https://www.promotiez.be/winkels/colruyt/promoties",
- "大黑狮 Delhaize":"https://www.promotiez.be/winkels/delhaize/promoties",
- "家乐福 Market":"https://www.promotiez.be/winkels/carrefour-market/promoties",
- "ALDI":"https://www.promotiez.be/winkels/aldi/promoties",
- "Lidl":"https://www.promotiez.be/winkels/lidl/promoties"
+ "Lidl":"https://www.lidl.be/",
+ "Colruyt":"https://www.colruyt.be/nl",
+ "Carrefour":"https://www.carrefour.be/nl/al-onze-promoties",
+ "ALDI":"https://www.aldi.be/aanbiedingen.html",
+ "Albert Heijn":"https://www.ah.be/",
+ "Delhaize":"https://www.delhaize.be/nl"
 };
 const QUICK = ["意面","鸡肉","牛奶","鸡蛋","奶酪","面包","三文鱼","水果","咖啡","啤酒","洗衣液","冷冻"];
 
 const $ = s => document.querySelector(s);
 const euro = n => "€" + n.toFixed(2);
+const storeZhOf = {};
+ITEMS.forEach(i => { if (!storeZhOf[i.store]) storeZhOf[i.store] = i.store_zh; });
+const storeLabel = s => STORE_LABEL[s] || storeZhOf[s] || s;
+const CN_COUNT = ["","一","两","三","四","五","六","七"];
 let shown = 60, state = {q:"", store:"", cat:"", sort:"pct"};
 
 /* ---------- stat strip ---------- */
 const deep = ITEMS.filter(i => i.pct && i.pct >= 50).length;
 $("#stats").innerHTML = [
-  [META.total, "件在打折"],
+  [META.total, "件本周促销"],
+  [META.with_pct, "件标了折扣"],
   [deep, "件五折起"],
-  [Object.keys(META.stores).length, "家超市"],
   [META.updated.slice(5), "更新"]
 ].map(([b,s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join("");
 $("#stamp").textContent = `本页数据抓取于 ${META.updated}，共 ${META.total} 条。每周传单换新后会自动刷新。`;
-$("#srclinks").innerHTML = Object.entries(SRC)
-  .map(([k,v]) => `<a href="${v}" target="_blank" rel="noopener">${k} ↗</a>`).join("");
+const storeKeys = Object.keys(META.stores);
+$("#sub").textContent = `${storeKeys.map(storeLabel).join("、")} ${CN_COUNT[storeKeys.length] || storeKeys.length}家本周促销商品全收录。搜中文就行——输入「意面」也能搜到 pasta、spaghetti、Barilla。`;
+$("#srclinks").innerHTML = storeKeys.filter(k => SRC[k])
+  .map(k => `<a href="${SRC[k]}" target="_blank" rel="noopener">${esc(storeLabel(k))} ↗</a>`).join("");
 
 /* ---------- filter selects ---------- */
 const byCount = o => Object.entries(o).sort((a,b) => b[1]-a[1]);
 $("#store").innerHTML = `<option value="">全部超市</option>` +
-  byCount(META.stores).map(([k,v]) => `<option value="${k}">${k} (${v})</option>`).join("");
+  byCount(META.stores).map(([k,v]) => `<option value="${k}">${esc(storeLabel(k))} (${v})</option>`).join("");
 $("#cat").innerHTML = `<option value="">全部品类</option>` +
   byCount(META.cats).map(([k,v]) => `<option value="${k}">${k} (${v})</option>`).join("");
 $("#quick").innerHTML = QUICK.map(t =>
@@ -294,8 +306,13 @@ function terms(q){
   if (!q) return [];
   return q.split(/[\s,，、]+/).filter(Boolean).map(t => {
     const alts = [t];
-    for (const [zh, en] of Object.entries(SYN)) {
-      if (zh.includes(t) || t.includes(zh)) alts.push(...en);
+    const exact = SYN[t];
+    if (exact) {
+      alts.push(...exact);
+    } else {
+      for (const [zh, en] of Object.entries(SYN)) {
+        if (zh.includes(t) || t.includes(zh)) alts.push(...en);
+      }
     }
     return alts.map(a => a.toLowerCase());
   });
@@ -305,11 +322,18 @@ function hit(text, alt){
   if (CJK.test(alt)) return text.includes(alt);
   return new RegExp("\\b" + alt.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).test(text);
 }
+const PET_WORDS = ["kat","hond","chat","chien","dier","pet","huisdier"];
+function isPetQuery(q, T){
+  if (/[猫狗宠]/.test(q)) return true;
+  return T.some(alts => alts.some(a => PET_WORDS.some(p => a.includes(p))));
+}
 function filtered(){
   const T = terms(state.q);
+  const excludePets = state.q.trim() && !state.cat && !isPetQuery(state.q, T);
   return ITEMS.filter(i => {
-    if (state.store && i.store_zh !== state.store) return false;
+    if (state.store && i.store !== state.store) return false;
     if (state.cat && i.cat !== state.cat) return false;
+    if (excludePets && i.cat === "宠物") return false;
     return T.every(alts => alts.some(a => hit(i.q, a)));
   }).sort((a,b) => {
     if (state.sort === "cheap") {
@@ -317,7 +341,7 @@ function filtered(){
       return pa - pb;
     }
     if (state.sort === "store") return a.store_zh.localeCompare(b.store_zh,"zh") || (b.pct||0)-(a.pct||0);
-    const rank = x => (x.pct || 0) - (x.unc ? 12 : 0);   // 存疑的折扣不占榜首
+    const rank = x => (x.unc ? 0 : x.pct || 0);   // 存疑的折扣按"未知"处理，不占榜首
     return rank(b) - rank(a) || (a.pp ?? 1e9) - (b.pp ?? 1e9);
   });
 }
@@ -330,13 +354,14 @@ function card(i){
         ? `<span class="flash unc" title="传单只给了整组价，这个折扣是按整组价算的，实际以店内标签为准">约 -${i.pct}%</span>`
         : `<span class="flash${i.pct >= 50 ? " big" : ""}">-${i.pct}%</span>`)
     : "";
+  const nm = esc(i.name_zh);
   return `<li class="row ${SCLASS[i.store]||""}">
     <div class="bar"></div>
     <div class="info">
-      <div class="nm">${esc(i.name_zh)}</div>
+      <div class="nm">${i.url ? `<a href="${i.url}" target="_blank" rel="noopener">${nm}</a>` : nm}</div>
       ${i.name && i.name !== i.name_zh ? `<div class="orig">${esc(i.name)}</div>` : ""}
       <div class="meta">
-        <span class="tag">${esc(i.store_zh)}</span>
+        <span class="tag">${esc(storeLabel(i.store))}</span>
         <span class="dot">·</span><span>${esc(i.cat)}</span>
         ${i.dt ? `<span class="deal">${esc(i.dt)}</span>` : ""}
         ${i.val ? `<span class="dot">·</span><span>${esc(i.val)}</span>` : ""}

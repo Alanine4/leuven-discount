@@ -21,7 +21,7 @@ items = items.map((i) => {
 
 items = dedupe(items);
 items.sort((a, b) => {
-  const rank = (x) => (x.pct || 0) - (x.unc ? 12 : 0);
+  const rank = (x) => (x.unc ? 0 : x.pct || 0);   // 存疑的折扣按"未知"处理，不占榜首
   return rank(b) - rank(a) || (a.pp ?? 1e9) - (b.pp ?? 1e9);
 });
 
@@ -29,7 +29,7 @@ const tally = (key) => items.reduce((m, i) => ((m[i[key]] = (m[i[key]] || 0) + 1
 const meta = {
   updated: new Date().toISOString().slice(0, 10),
   total: items.length,
-  stores: tally('store_zh'),
+  stores: tally('store'),
   cats: tally('cat'),
   with_pct: items.filter((i) => i.pct).length,
 };
