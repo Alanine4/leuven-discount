@@ -482,26 +482,6 @@
  {
   "store": "Lidl",
   "store_zh": "Lidl",
-  "name": "PARKSIDE® Boor- en beitelhamer met SDS-plus PBH1050",
-  "name_zh": "PARKSIDE® Boor- en beitelhamer met SDS-plus PBH1050",
-  "brand": "PARKSIDE®",
-  "po": null,
-  "pp": 49.99,
-  "unit": "",
-  "dt": "",
-  "pct": null,
-  "mb": 0,
-  "unc": 0,
-  "val": "还剩 6 天",
-  "ends": "2026-09-15",
-  "cat": "家电数码",
-  "url": "https://www.lidl.be/p/nl-BE/parkside-boor-en-beitelhamer-met-sds-plus-pbh1050/p100399898",
-  "img": "https://www.lidl.be/assets/gcp01d4bd2fc7d148aebebd3b58f021eeea.jpg",
-  "id": "100399898"
- },
- {
-  "store": "Lidl",
-  "store_zh": "Lidl",
   "name": "PARKSIDE® Fijn handgereedschap",
   "name_zh": "PARKSIDE® Fijn handgereedschap",
   "brand": "PARKSIDE®",
@@ -1458,6 +1438,26 @@
   "url": "https://www.lidl.be/p/nl-BE/kruislijnlaser-met-statief-parkside-pkll10/p100398744",
   "img": "https://www.lidl.be/assets/gcp0ad0d5b4f44a4b44a6daa1e236fd48e0.jpg",
   "id": "100398744"
+ },
+ {
+  "store": "Lidl",
+  "store_zh": "Lidl",
+  "name": "PARKSIDE® Boor- en beitelhamer met SDS-plus PBH1050",
+  "name_zh": "PARKSIDE® Boor- en beitelhamer met SDS-plus PBH1050",
+  "brand": "PARKSIDE®",
+  "po": null,
+  "pp": 49.99,
+  "unit": "",
+  "dt": "",
+  "pct": null,
+  "mb": 0,
+  "unc": 0,
+  "val": "还剩 6 天",
+  "ends": "2026-09-15",
+  "cat": "家电数码",
+  "url": "https://www.lidl.be/p/nl-BE/parkside-boor-en-beitelhamer-met-sds-plus-pbh1050/p100399898",
+  "img": "https://www.lidl.be/assets/gcp01d4bd2fc7d148aebebd3b58f021eeea.jpg",
+  "id": "100399898"
  },
  {
   "store": "Lidl",
@@ -3474,7 +3474,7 @@
   "unc": 0,
   "val": "还剩 3 天",
   "ends": "2026-09-12",
-  "cat": "肉禽蛋",
+  "cat": "乳制品奶酪",
   "url": "https://www.lidl.be/p/nl-BE/le-patissier-kriekentaart/p10030345",
   "img": "https://imgproxy-retcat.assets.schwarz/R-W1xzI9zAeJWHitj7IbL0CTsK0KKZ873lR3a6XYgAY/sm:0/exar:1:ce/w:427/h:320/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvaW50Lzg5Njg5OUU3NjZFNUNBQjRDRDdDQTlCOU/Q1RkUwNjVDRTNCRTM0QzAwRDU0Nzk0NDY5MzYxODcyRjRDMTU2QkIucG5n.png",
   "id": "10030345"
@@ -3554,7 +3554,7 @@
   "unc": 0,
   "val": "还剩 3 天",
   "ends": "2026-09-12",
-  "cat": "肉禽蛋",
+  "cat": "乳制品奶酪",
   "url": "https://www.lidl.be/p/nl-BE/milbona-yoghurt-griekse-stijl/p10030233",
   "img": "https://imgproxy-retcat.assets.schwarz/b30xCL9JdfmaKAERaqDy8AbLNHZOpEJhuCiVxucEXwI/sm:0/exar:1:ce/w:427/h:320/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvaW50LzhENzRFNUM5QTI5ODUyMUNFN0NDNTg1NU/Y5MjM5REEwNUQzMzAyMjBGMThBNzdEMjU2OUIzRURCREFGOEQzMUQucG5n.png",
   "id": "10030233"
@@ -3614,7 +3614,7 @@
   "unc": 0,
   "val": "还剩 3 天",
   "ends": "2026-09-12",
-  "cat": "肉禽蛋",
+  "cat": "乳制品奶酪",
   "url": "https://www.lidl.be/p/nl-BE/danone-activia/p10030231",
   "img": "https://imgproxy-retcat.assets.schwarz/XaN8W4Gh2juWGchY57mEjq7Dgx_4-yqRea2utDVXykI/sm:0/exar:1:ce/w:427/h:320/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvaW50L0ZENDlGNzM1MjdFNjUzRENGMkI3NEM2M0/MyRjBFRDExODBGQjNCNzlCNjQ0MzNFMDMxNDAyRkFBOUI5MzZDMzcucG5n.png",
   "id": "10030231"
@@ -3674,7 +3674,7 @@
   "unc": 0,
   "val": "还剩 3 天",
   "ends": "2026-09-12",
-  "cat": "肉禽蛋",
+  "cat": "乳制品奶酪",
   "url": "https://www.lidl.be/p/nl-BE/paschka-verse-kaas-met-chocosmaak/p10030319",
   "img": "https://imgproxy-retcat.assets.schwarz/0xKWwxhZTv9BpOp13ZaWcC6JhMaEGCQMWMyxHPXJGwk/sm:0/exar:1:ce/w:427/h:320/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvaW50Lzk2MkU3OEVBRkY0ODRBRkU5ODM2NkE3RU/EzNkJCMzNGMTczQzZFOTA1NkQxNUZGNjc3REVBMEExNzI4OEQxMzcucG5n.png",
   "id": "10030319"
@@ -3974,7 +3974,7 @@
   "unc": 0,
   "val": "还剩 3 天",
   "ends": "2026-09-12",
-  "cat": "肉禽蛋",
+  "cat": "乳制品奶酪",
   "url": "https://www.lidl.be/p/nl-BE/milbona-roomboter/p10030241",
   "img": "https://imgproxy-retcat.assets.schwarz/zIH7fOhhTVu6I_pE1TinO6cvWNPIL32X9qAEK6m-VRI/sm:0/exar:1:ce/w:427/h:320/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvaW50LzIxMzZCNTJFMUU2QTkzQ0VDMEVDQzZGNU/I1MUQzMTdENUQxOTgwOTJDRjdCMTlDMTM2MzQ1REExMkQ0M0Y4MEIucG5n.png",
   "id": "10030241"
@@ -3994,7 +3994,7 @@
   "unc": 0,
   "val": "还剩 3 天",
   "ends": "2026-09-12",
-  "cat": "肉禽蛋",
+  "cat": "乳制品奶酪",
   "url": "https://www.lidl.be/p/nl-BE/becel-margarine-proactiv/p10030235",
   "img": "https://imgproxy-retcat.assets.schwarz/dhVfwwykXnTIvCRsHJwox_f72tz9cpxtnrYrdhq0waM/sm:0/exar:1:ce/w:427/h:320/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvaW50LzZCN0M1MTk4RTYzREEwNDcwOUUyRTcyND/U0NDUyODNCNDhCODY3ODRCRjRCOEFERjA4MzUyMTNDNzVFNkZCQ0IucG5n.png",
   "id": "10030235"
@@ -4374,7 +4374,7 @@
   "unc": 0,
   "val": "还剩 3 天",
   "ends": "2026-09-12",
-  "cat": "肉禽蛋",
+  "cat": "乳制品奶酪",
   "url": "https://www.lidl.be/p/nl-BE/kaasplankje-met-belgische-kazen/p10030325",
   "img": "https://imgproxy-retcat.assets.schwarz/Q9_98IQOPi00ie_UHymbG0wHCBfgvCxUwGh1bZxP3bI/sm:0/exar:1:ce/w:427/h:320/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvaW50L0MyNzBDMDhEMTNDMDFGM0U5MDlBOEQ2MU/IwNjU2ODVGRjE2M0U2OTNBNkNCNzJDNzA4RUYwRDE5RDY1OTFGREEucG5n.png",
   "id": "10030325"
@@ -4534,7 +4534,7 @@
   "unc": 0,
   "val": "还剩 3 天",
   "ends": "2026-09-12",
-  "cat": "肉禽蛋",
+  "cat": "乳制品奶酪",
   "url": "https://www.lidl.be/p/nl-BE/alpenfest-verse-kaasspecialiteiten/p10030297",
   "img": "https://imgproxy-retcat.assets.schwarz/tj2QDOPmQt87ZZ5h4999vU4SE5S6jC5niN_TscbIrU0/sm:0/exar:1:ce/w:427/h:320/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvaW50LzM0NTNBRURBRjBCNUNENkYwNzhEN0E4NE/M1RDFFMTUwNTc2MjExRUY2RUZEOUY5MUE5OTZERTFGNTQ3NDExNjYucG5n.png",
   "id": "10030297"
@@ -4654,7 +4654,7 @@
   "unc": 0,
   "val": "还剩 3 天",
   "ends": "2026-09-12",
-  "cat": "肉禽蛋",
+  "cat": "乳制品奶酪",
   "url": "https://www.lidl.be/p/nl-BE/corsendonk-abdijkaas-in-blokjes/p10030305",
   "img": "https://imgproxy-retcat.assets.schwarz/EsM8LM2dPji00y6ZUZ069TpkFLyT0koeIO_PgvW75b8/sm:0/exar:1:ce/w:427/h:320/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvaW50LzVFOENDQThBNDM1MDJBMTU2OUJDRjQxNz/gyMDNENzlENzIyM0M3NkU1Q0ZBMjQ2QjAwRTM0RDRBRjkwMzk2MEYucG5n.png",
   "id": "10030305"
@@ -4714,7 +4714,7 @@
   "unc": 0,
   "val": "还剩 3 天",
   "ends": "2026-09-12",
-  "cat": "肉禽蛋",
+  "cat": "乳制品奶酪",
   "url": "https://www.lidl.be/p/nl-BE/botersandwich/p10030195",
   "img": "https://imgproxy-retcat.assets.schwarz/fe9ZxKf1dt_LiWvVGZVM2E6-30zNIZYyox9VZvt9Zls/sm:0/exar:1:ce/w:427/h:320/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvaW50L0Y3NDI0RUQxNTk5RDIzRTI0NDdFMjMzMT/E3QjNFMDdCQTQ5ODlDMTVENTYyNUYyMEQzODVCQTdCOTZGNTk5NTgucG5n.png",
   "id": "10030195"
@@ -4874,7 +4874,7 @@
   "unc": 0,
   "val": "还剩 3 天",
   "ends": "2026-09-12",
-  "cat": "果蔬",
+  "cat": "冷冻速食",
   "url": "https://www.lidl.be/p/nl-BE/chef-select-antipasti/p10030359",
   "img": "https://imgproxy-retcat.assets.schwarz/Bcyq0jWI9rScAi5reBR7qJblqHpW_cgWxMpUx-154SA/sm:0/exar:1:ce/w:427/h:320/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvaW50L0Q3MjE2NEY1NjM3ODE3NzNFREQxOTQ5Nk/ZBM0FBNDVFOTdDRDlENDVERUQ0QkJCQTc4NDY3NTQ3REQ5NTc1QTgucG5n.png",
   "id": "10030359"
@@ -5214,7 +5214,7 @@
   "unc": 0,
   "val": "还剩 3 天",
   "ends": "2026-09-12",
-  "cat": "肉禽蛋",
+  "cat": "乳制品奶酪",
   "url": "https://www.lidl.be/p/nl-BE/milbona-emmentaler-geraspt/p10030237",
   "img": "https://imgproxy-retcat.assets.schwarz/ffo1oyWtE5EiKECb1d3OoyCZOEG1KUuclnmK5yR_HjQ/sm:0/exar:1:ce/w:427/h:320/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvaW50LzVERjY3NTIyMTcxM0UxNzcyRkRDOEFEM0/EwMkY0Q0IyQ0FFOTM5RkNFM0M5NUVCMzY4QjU0NDcxRDZERUJBMzAucG5n.png",
   "id": "10030237"
@@ -5334,7 +5334,7 @@
   "unc": 0,
   "val": "还剩 3 天",
   "ends": "2026-09-12",
-  "cat": "肉禽蛋",
+  "cat": "乳制品奶酪",
   "url": "https://www.lidl.be/p/nl-BE/alpenfest-wiesenlanderkaas/p10030275",
   "img": "https://imgproxy-retcat.assets.schwarz/czvHzIQJ_byEnrkjzkkDv5PB2awZxzrh_u-kGVHo_VE/sm:0/exar:1:ce/w:427/h:320/cz/M6Ly9wcm9kLWNhd/GFsb2ctbWVkaWEvaW50LzdCNjVFOUIzOTMyREVDQkVGMzE5QjRCNk/MwRDUzNzc0RUU0Njc2MTBGNzdBNkM5QjE3RUVDMzQyNkU3OEJEREUucG5n.png",
   "id": "10030275"

@@ -1,14 +1,19 @@
 // Carrefour：没有公开 JSON 接口，促销列表页是服务端渲染的。
 // 裸 fetch 会被 403（TLS 指纹被识别），所以整个走 Playwright。
 // robots 禁止 ?pmid= 和 /search?q=，所以只走 ?p=N 主列表。每页 40 张卡，其中 4 张是推荐位（.js-einstein-tile），排除后剩 36 条真商品。
-// 注意：这是全国线上促销目录，分不出 Market / Express 店型，拿到的是超集。
+// 鲁汶只有 Carrefour Market（Heverlee）和 Carrefour Express，没有大卖场，所以不抓全国促销目录，
+// 改抓 Market / Express 各自的店型专用促销页（DOM 结构和全国目录完全一样）。同一商品可能在两个来源里都出现，
+// 刻意保留两条（store 不同，dedupe() 按 store 去重不会合并），方便页面按店型筛选。
 import * as cheerio from 'cheerio';
 import { normalize, sleep } from '../lib/normalize.js';
 import { fetchHTML, closeBrowser } from '../lib/browser.js';
 import { toCat } from '../lib/categorize.js';
 
-const BASE = 'https://www.carrefour.be/nl/al-onze-promoties';
 const PER_PAGE = 36;
+const SOURCES = [
+  { slug: 'al-onze-market-promoties', store: 'Carrefour Market', storeZh: '家乐福 Market' },
+  { slug: 'al-onze-express-promoties', store: 'Carrefour Express', storeZh: '家乐福 Express' },
+];
 
 const days = (endMs) => {
   if (!endMs) return '';
@@ -28,7 +33,7 @@ function buildCatMap($) {
   return map;
 }
 
-export function parsePage(html) {
+export function parsePage(html, { store, storeZh }) {
   const $ = cheerio.load(html);
   const catMap = buildCatMap($);
   const cards = $('div.product.js-product[data-pid]')
@@ -46,9 +51,11 @@ export function parsePage(html) {
       gtmItem = gtm?.ecommerce?.items?.[0] || {};
     } catch { /* GTM json 偶尔会缺，字段照常用页面 DOM 兜底 */ }
 
-    const name = $tile.find('.desktop-name').first().text().trim()
+    // 页面偶尔把 UTF-8 当 Latin-1 输出（"PralinÃ©"），按字节还原
+    const fixEnc = (t) => (/[ÃÂ][-¿]/.test(t) ? Buffer.from(t, 'latin1').toString('utf8') : t);
+    const name = fixEnc($tile.find('.desktop-name').first().text().trim()
       || $tile.find('.mobile-name').first().text().trim()
-      || gtmItem.item_name || '';
+      || gtmItem.item_name || '');
     if (!name) return;
 
     const priceAttr = $tile.find('.pricing-wrapper .value').first().attr('content');
@@ -64,7 +71,7 @@ export function parsePage(html) {
     const img = $tile.find('.tile-image').first();
 
     out.push({
-      store: 'Carrefour', storeZh: '家乐福',
+      store, storeZh,
       name,
       brand: $tile.find('.brand-wrapper a').first().text().trim() || gtmItem.item_brand || '',
       priceOrig: null,                                            // 页面不给划线原价
@@ -90,22 +97,29 @@ export function totalCount(html) {
 
 export default async function scrapeCarrefour({ maxPages = 60 } = {}) {
   try {
-    const first = await fetchHTML(`${BASE}?p=1`);
-    const total = totalCount(first);
-    const pages = total ? Math.min(Math.ceil(total / PER_PAGE), maxPages) : maxPages;
+    let rows = [];
+    for (let i = 0; i < SOURCES.length; i++) {
+      const src = SOURCES[i];
+      const base = `https://www.carrefour.be/nl/${src.slug}`;
+      const first = await fetchHTML(`${base}?p=1`);
+      const total = totalCount(first);
+      const pages = total ? Math.min(Math.ceil(total / PER_PAGE), maxPages) : maxPages;
 
-    let rows = parsePage(first);
-    if (!rows.length) {
-      const e = new Error('Carrefour 页面结构对不上，一个商品都没解析出来。跑 npm run inspect:carrefour 看看现在的 DOM。');
-      e.html = first;
-      throw e;
-    }
-    console.log(`  Carrefour: 共 ${total ?? '?'} 条 / ${pages} 页`);
-    for (let p = 2; p <= pages; p++) {
-      await sleep(1200);                        // 自觉限速
-      const got = parsePage(await fetchHTML(`${BASE}?p=${p}`));
-      if (!got.length) break;
+      let got = parsePage(first, src);
+      if (!got.length) {
+        const e = new Error(`Carrefour（${src.store}）页面结构对不上，一个商品都没解析出来。跑 npm run inspect:carrefour 看看现在的 DOM。`);
+        e.html = first;
+        throw e;
+      }
+      console.log(`  ${src.store}: 共 ${total ?? '?'} 条 / ${pages} 页`);
+      for (let p = 2; p <= pages; p++) {
+        await sleep(1200);                        // 自觉限速
+        const more = parsePage(await fetchHTML(`${base}?p=${p}`), src);
+        if (!more.length) break;
+        got = got.concat(more);
+      }
       rows = rows.concat(got);
+      if (i < SOURCES.length - 1) await sleep(1200);   // 来源之间也限速
     }
     return rows.map(normalize);
   } finally { await closeBrowser(); }

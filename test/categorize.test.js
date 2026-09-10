@@ -130,6 +130,32 @@ test('Beenhouwerij -> 肉禽蛋', () => {
   assert.equal(toCat('Beenhouwerij'), '肉禽蛋');
 });
 
+// ---- PRIORITY 规则：zuivel/maaltijd 不能被后续规则里的短关键词撞车 ----
+
+test('Zuivel, eieren -> 乳制品奶酪（不能被 eieren 撞成肉禽蛋）', () => {
+  assert.equal(toCat('Zuivel, eieren'), '乳制品奶酪');
+});
+
+test('Zuivel -> 乳制品奶酪', () => {
+  assert.equal(toCat('Zuivel'), '乳制品奶酪');
+});
+
+test('Maaltijden, salades -> 冷冻速食（不能被 salade 撞成果蔬）', () => {
+  assert.equal(toCat('Maaltijden, salades'), '冷冻速食');
+});
+
+test('Kant-en-klare maaltijden -> 冷冻速食', () => {
+  assert.equal(toCat('Kant-en-klare maaltijden'), '冷冻速食');
+});
+
+test('Eieren（不带 zuivel）仍归 肉禽蛋', () => {
+  assert.equal(toCat('Eieren'), '肉禽蛋');
+});
+
+test('Verse salade（不带 maaltijd）仍归 果蔬', () => {
+  assert.equal(toCat('Verse salade'), '果蔬');
+});
+
 // ---- 空输入 ----
 
 test('空串 -> 其他', () => {

@@ -27,7 +27,7 @@ ${JSON.stringify(batch, null, 0)}`;
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-api-key': KEY, 'anthropic-version': '2023-06-01' },
-    body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 4000, messages: [{ role: 'user', content: prompt }] }),
+    body: JSON.stringify({ model: 'claude-opus-5', max_tokens: 4000, messages: [{ role: 'user', content: prompt }] }),
   });
   if (!res.ok) { console.error(`翻译请求失败 HTTP ${res.status}，已翻的先存下来`); break; }
 

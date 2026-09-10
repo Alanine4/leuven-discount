@@ -6,10 +6,10 @@ import carrefour from '../scrapers/carrefour.js';
 import ah from '../scrapers/ah.js';
 import aldi from '../scrapers/aldi.js';
 
-const SOURCES = { lidl, colruyt, carrefour, aldi };
-const EXTRA = { ah };                              // 还没打通的店：不进默认清单，但能按名字单独跑
+// ah 放最后：它要开有头浏览器（CI 里靠 xvfb），别挡着前面几家
+const SOURCES = { lidl, colruyt, carrefour, aldi, ah };
 const only = process.argv[2];                     // node scripts/scrape.js lidl → 只跑一家
-const pick = only ? { [only]: SOURCES[only] || EXTRA[only] } : SOURCES;
+const pick = only ? { [only]: SOURCES[only] } : SOURCES;
 
 fs.mkdirSync('data/raw', { recursive: true });
 const report = [];

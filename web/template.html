@@ -142,6 +142,8 @@ li.row+li.row{border-top:1px solid var(--line)}
 .meta{display:flex;flex-wrap:wrap;gap:0 8px;align-items:center;margin-top:8px;
   font-size:12px;line-height:1.5;color:var(--text-2)}
 .tag{font-weight:500;color:var(--text-2)}
+.cat{display:inline-flex;align-items:center;gap:4px}
+.cat .ic-sm{color:inherit}
 .dot{color:var(--gray-300)}
 .deal{background:var(--tint);color:var(--text-2);border-radius:var(--r);padding:1px 6px}
 .price{text-align:right;white-space:nowrap}
@@ -299,14 +301,40 @@ const SYN = {
 const IC_EXT = `<svg class="ic-sm ext" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 12.5 12.5 7.5"/><path d="M8 7.5h4.5V12"/></svg>`;
 const IC_INFO = `<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M10 9.4v3.8"/><path d="M10 6.9h.01"/></svg>`;
 
+/* 品类图标：同一套 20 网格 / 1.5px 线宽，卡片元信息行里用 */
+const CAT_ICON = {
+ "粮油面食":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5h15c0 4.1-3.4 7.5-7.5 7.5S2.5 13.6 2.5 9.5Z"/><path d="M6.5 7.2c1.2-1.5 2.3-1.5 3.5 0s2.3 1.5 3.5 0"/><path d="M7.8 4.3c.7-1 1.5-1 2.2 0s1.5 1 2.2 0"/></svg>`,
+ "肉禽蛋":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1c2.4 2.7 4.2 4.7 4.2 6.9a4.2 4.2 0 0 1-8.4 0C7.8 5.7 9.6 3.7 12 1Z" transform="rotate(225 12 7.9)"/><path d="M8.6 11.3 6.2 13.7"/><circle cx="6.8" cy="14.3" r="1.7"/><circle cx="5.5" cy="13" r="1.7"/></svg>`,
+ "海鲜":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 10c1.9-2.8 4.1-4.2 6-4.2s4.1 1.4 5.5 4.2c-1.4 2.8-3.6 4.2-5.5 4.2S7.9 12.8 6 10Z"/><path d="M6 10 2.6 6.8v6.4Z"/><path d="M13.8 8.7h.01"/></svg>`,
+ "乳制品奶酪":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 17.5V8.5L8 4.5h4l2.5 4v9Z"/><path d="M5.5 8.5h9"/></svg>`,
+ "果蔬":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 6.4c-1.2-1.1-3.4-1.4-4.8.2-1.5 1.7-1.2 4.9.4 6.9 1 1.3 2.4 2.6 3.4 2.6.5 0 .7-.3 1-.3s.5.3 1 .3c1 0 2.4-1.3 3.4-2.6 1.6-2 1.9-5.2.4-6.9-1.4-1.6-3.6-1.3-4.8-.2Z"/><path d="M10 6.4V4"/><path d="M10.3 4.4c1.4-.3 2.6-1.4 2.9-2.8-1.4.3-2.6 1.4-2.9 2.8Z"/></svg>`,
+ "面包烘焙":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.2 15.2V9.6a4.4 4.4 0 0 1 4.4-4.4h4.8a4.4 4.4 0 0 1 4.4 4.4v5.6a.9.9 0 0 1-.9.9H4.1a.9.9 0 0 1-.9-.9Z"/><path d="M7.6 5.6 6.2 9.2"/><path d="M12.4 5.6 11 9.2"/></svg>`,
+ "零食甜点":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M7.6 8h.01"/><path d="M11.9 7.4h.01"/><path d="M12.7 11.6h.01"/><path d="M8.6 12.4h.01"/></svg>`,
+ "饮料":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.6 6.5h10.8"/><path d="M5.8 6.5l.9 9.7a1.4 1.4 0 0 0 1.4 1.3h3.8a1.4 1.4 0 0 0 1.4-1.3l.9-9.7"/><path d="M11.7 6.5 13.9 2.4"/></svg>`,
+ "酒类":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h8v3.2a4 4 0 0 1-8 0Z"/><path d="M10 10.7v5.3"/><path d="M6.9 16.5h6.2"/></svg>`,
+ "冷冻速食":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.8v14.4"/><path d="M3.8 6.4 16.2 13.6"/><path d="M3.8 13.6 16.2 6.4"/><path d="M7.6 4.6 10 7l2.4-2.4M7.6 15.4 10 13l2.4 2.4"/></svg>`,
+ "调味酱料":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 17.2V9.2a3.5 3.5 0 0 1 7 0v8a.6.6 0 0 1-.6.6H7.1a.6.6 0 0 1-.6-.6Z"/><path d="M6.6 11.4h6.8"/><path d="M8.9 7.6h.01M11.1 7.6h.01M10 6.2h.01"/></svg>`,
+ "咖啡茶":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 7.6h10v4.8a4 4 0 0 1-4 4H7.5a4 4 0 0 1-4-4Z"/><path d="M13.5 8.9h1.1a2.4 2.4 0 0 1 0 4.8h-1.1"/><path d="M6.8 5.4c.8-.8.8-1.7 0-2.5M10.2 5.4c.8-.8.8-1.7 0-2.5"/></svg>`,
+ "个护美妆":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3.2c2.6 3 4.6 5.2 4.6 7.6a4.6 4.6 0 0 1-9.2 0c0-2.4 2-4.6 4.6-7.6Z"/><path d="M7.7 11.2a2.4 2.4 0 0 0 1.7 2.3"/></svg>`,
+ "家清日用":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17.5v-6.9a1.6 1.6 0 0 1 1.6-1.6h2.8a1.6 1.6 0 0 1 1.6 1.6v6.9Z"/><path d="M8.8 9V6.2h3.4l1.8-1.3"/><path d="M15.6 3.4h.01M16.6 5.4h.01M15 7.2h.01"/></svg>`,
+ "母婴":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.8 4.9V3.7a1.2 1.2 0 0 1 2.4 0v1.2"/><path d="M7.8 6.4h4.4V4.9H7.8Z"/><path d="M7.2 6.4h5.6v9.5a1.6 1.6 0 0 1-1.6 1.6H8.8a1.6 1.6 0 0 1-1.6-1.6Z"/><path d="M9.2 9.2h2M9.2 11.6h2"/></svg>`,
+ "宠物":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6.1" cy="8.3" r="1.7"/><circle cx="9.5" cy="5.9" r="1.7"/><circle cx="13.2" cy="6.6" r="1.7"/><circle cx="15.5" cy="9.8" r="1.7"/><path d="M13.5 13.3c1.4 1.6.3 4-1.8 4-1 0-1.3-.4-2.1-.4s-1.1.4-2.1.4c-2.1 0-3.2-2.4-1.8-4 .9-1 1.5-1.4 2.2-2.2.7-.9 2.7-.9 3.4 0 .7.8 1.3 1.2 2.2 2.2Z"/></svg>`,
+ "家电数码":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5h12a1.5 1.5 0 0 1 1.5 1.5v6.5a1.5 1.5 0 0 1-1.5 1.5H4a1.5 1.5 0 0 1-1.5-1.5V6A1.5 1.5 0 0 1 4 4.5Z"/><path d="M10 14v2.5"/><path d="M7 16.5h6"/></svg>`,
+ "服饰家居":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 3.5 4 5.4l1.4 3.2 1.6-.7v8.6h6V7.9l1.6.7L16 5.4l-3.5-1.9a2.6 2.6 0 0 1-5 0Z"/></svg>`,
+ "其他":`<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5.4" cy="10" r="1.3"/><circle cx="10" cy="10" r="1.3"/><circle cx="14.6" cy="10" r="1.3"/></svg>`
+};
+
 const STORE_LABEL = {"Lidl":"Lidl","Colruyt":"大仓库 Colruyt","Carrefour":"家乐福 Carrefour",
+                "Carrefour Market":"家乐福 Market","Carrefour Express":"家乐福 Express",
                 "ALDI":"ALDI","Albert Heijn":"AH 阿尔伯特","Delhaize":"大黑狮 Delhaize"};
 const SRC = {
- "Lidl":"https://www.lidl.be/",
- "Colruyt":"https://www.colruyt.be/nl",
+ "Lidl":"https://www.lidl.be/l/nl-BE/folder",
+ "Colruyt":"https://www.colruyt.be/nl/acties",
  "Carrefour":"https://www.carrefour.be/nl/al-onze-promoties",
+ "Carrefour Market":"https://www.carrefour.be/nl/al-onze-market-promoties",
+ "Carrefour Express":"https://www.carrefour.be/nl/al-onze-express-promoties",
  "ALDI":"https://www.aldi.be/aanbiedingen.html",
- "Albert Heijn":"https://www.ah.be/",
+ "Albert Heijn":"https://www.ah.be/bonus",
  "Delhaize":"https://www.delhaize.be/nl"
 };
 const QUICK = ["意面","鸡肉","牛奶","鸡蛋","奶酪","面包","三文鱼","水果","咖啡","啤酒","洗衣液","冷冻"];
@@ -407,7 +435,7 @@ function card(i){
       ${i.name && i.name !== i.name_zh ? `<div class="orig">${esc(i.name)}</div>` : ""}
       <div class="meta">
         <span class="tag">${esc(storeLabel(i.store))}</span>
-        <span class="dot">·</span><span>${esc(i.cat)}</span>
+        <span class="dot">·</span><span class="cat">${CAT_ICON[i.cat] || ""}${esc(i.cat)}</span>
         ${showDt ? `<span class="deal">${esc(i.dt)}</span>` : ""}
         ${i.val ? `<span class="dot">·</span><span>${esc(i.val)}</span>` : ""}
       </div>

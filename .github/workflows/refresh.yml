@@ -21,9 +21,12 @@ jobs:
           cache: npm
       - run: npm ci || npm install
       - run: npx playwright install --with-deps chromium
+      # AH 的 Akamai 只放行有头浏览器，CI 上得有个虚拟显示才起得来。
+      # --with-deps 装的是浏览器自身的依赖，不含 xvfb，所以单独装一次。
+      - run: sudo apt-get install -y xvfb
 
       - name: 抓取
-        run: npm run scrape
+        run: xvfb-run -a --server-args="-screen 0 1280x800x24" npm run scrape
 
       - name: 出页面
         run: npm run build
