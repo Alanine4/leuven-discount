@@ -1,11 +1,29 @@
 {
- "at": "2026-09-10T09:09:07.128Z",
+ "at": "2026-09-10T09:27:23.583Z",
  "report": [
   {
    "store": "lidl",
    "ok": true,
    "count": 272,
-   "sec": "22.9"
+   "sec": "30.4"
+  },
+  {
+   "store": "colruyt",
+   "ok": true,
+   "count": 1376,
+   "sec": "63.3"
+  },
+  {
+   "store": "carrefour",
+   "ok": true,
+   "count": 1680,
+   "sec": "324.5"
+  },
+  {
+   "store": "aldi",
+   "ok": true,
+   "count": 379,
+   "sec": "1.9"
   }
  ]
 }

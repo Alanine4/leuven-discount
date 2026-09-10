@@ -32,7 +32,11 @@ for (const [name, fn] of Object.entries(pick)) {
   }
 }
 
-fs.writeFileSync('data/raw/_report.json', JSON.stringify({ at: new Date().toISOString(), report }, null, 1));
+// 单店模式只更新那一家的记录，别把其他家的结果覆盖掉
+let prev = [];
+try { prev = JSON.parse(fs.readFileSync('data/raw/_report.json', 'utf8')).report || []; } catch {}
+const merged = only ? [...prev.filter((r) => !(r.store in pick)), ...report] : report;
+fs.writeFileSync('data/raw/_report.json', JSON.stringify({ at: new Date().toISOString(), report: merged }, null, 1));
 const failed = report.filter((r) => !r.ok);
 if (failed.length === Object.keys(pick).length) { console.error('\n全部失败了'); process.exit(1); }
 if (failed.length) console.warn(`\n${failed.length} 家失败，其余照常出页面`);

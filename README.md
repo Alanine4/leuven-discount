@@ -11,47 +11,27 @@ cd C:\Projects\Leuven_discount
 npm install
 npm run scrape          # 抓数据 → data/raw/*.json
 npm run build           # 出页面 → public/index.html
+npm test                # 跑单元测试
 ```
 
 然后浏览器打开 `public\index.html`。
 
-只想试一家：`node scripts/scrape.js lidl`
+只想试一家：`node scripts/scrape.js <store>`，比如 `node scripts/scrape.js lidl`。可选的 store 有 lidl、colruyt、carrefour、aldi、ah。
 
-## 数据源现状
+## 数据来源
 
 | 超市 | 方式 | 状态 |
 |---|---|---|
-| Lidl | 官网内部 JSON 接口，免鉴权，一次拉完 | ✅ 可用 |
-| Colruyt | 公开 GCS bucket 上的每日全量 dump | ✅ 可用 |
-| Carrefour | 促销列表页服务端渲染，cheerio 解析 | ⚠️ **选择器待校准**，见下 |
-| AH（鲁汶 Bondgenotenlaan 64） | ah.be 的 `/zoeken/api/`，robots 允许但要带对 header | ⚠️ **接口待确认**，见下 |
-| ALDI | Next.js `__NEXT_DATA__`，需要 Playwright | ⛔ 未做 |
-| Delhaize | SAP Hybris + 反爬网关，全站 JS 渲染 | ⛔ 未做 |
-
-> AH 比利时和荷兰是**两套独立定价**（同一商品 `wi123`：ah.be €2.29 / ah.nl €1.99），
-> 所以网上那些现成的 `api.ah.nl` 封装对鲁汶没用，必须走 ah.be。
-
-### AH 接口确认
-
-```powershell
-npm run inspect:ah
-```
-
-它会试几个候选接口并打印结果。全都不通的话，输出里有一段 Playwright 抓包命令，跑完把打印出的接口地址发给 Claude。
-
-### Carrefour 选择器校准
-
-页面结构是猜的，第一次跑大概率解析不出商品。跑一下：
-
-```powershell
-npm run inspect:carrefour
-```
-
-它会打印出现在真实的 class 名和一个商品卡片的 HTML，把输出贴给 Claude，改 `scrapers/carrefour.js` 里的选择器即可。
+| Lidl | 官网搜索接口返回的 JSON，免鉴权 | 可用 |
+| Colruyt | 第三方镜像的公开 GCS bucket，每日更新一次全量数据 | 可用 |
+| Carrefour | 官网促销页服务端渲染，Playwright 取页 + cheerio 解析 | 可用 |
+| ALDI | 官网 aanbiedingen 页里嵌的 `__NEXT_DATA__`，裸 fetch 即可 | 可用 |
+| Albert Heijn | ah.be 全站返回 403，暂时抓不了 | 待解决 |
+| Delhaize | 全站 JS 渲染加反爬网关，还没做 | 待做 |
 
 ## 每周自动更新
 
-`.github/workflows/refresh.yml` 已经配好，周一和周三早上 7 点（比利时时间）各跑一次：抓取 → 出页面 → 数据提交回仓库。
+`.github/workflows/refresh.yml` 已经配好：每周一、周三早上 7 点（比利时时间）跑一次抓取和构建，把新数据提交回仓库。Vercel 监听到仓库更新后自动重新部署，Output Directory 填 `public`。
 
 要用的话：
 
@@ -91,7 +71,7 @@ git push -u origin main
 ```
 scrapers/     每家超市一个抓取器，输出统一格式
 lib/          normalize.js 折扣计算 · categorize.js 品类归并 · glossary.json 中文名词表
-scripts/      scrape 抓取 · build 出页面 · translate 补译名 · inspect-carrefour 校准工具
+scripts/      scrape 抓取 · build 出页面 · translate 补译名 · inspect-carrefour/inspect-ah 校准工具
 web/          页面模板（数据用 /*__DATA__*/ 占位符注入）
 data/         raw 各店原始数据 · latest.json 当前 · history 历史快照
 public/       构建产物，Vercel 部署这个目录
