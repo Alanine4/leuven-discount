@@ -2,9 +2,8 @@ name: 每周刷新折扣
 
 on:
   schedule:
-    # Aldi/Lidl 周一换传单，Delhaize/Carrefour/Colruyt 周三换。UTC 时间（比利时夏令时 -2h）
-    - cron: '0 5 * * 1'
-    - cron: '0 5 * * 3'
+    # AH/ALDI 周一、Carrefour 周二或周三、Lidl/Colruyt 周三、Lidl/ALDI 周末档周四上线；周一到周四每天早 7 点（比利时时间）各跑一次。UTC 时间
+    - cron: '0 5 * * 1-4'
   workflow_dispatch:        # 也可以在 GitHub 页面上手动点一下就跑
 
 permissions:

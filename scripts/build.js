@@ -27,7 +27,8 @@ items.sort((a, b) => {
 
 const tally = (key) => items.reduce((m, i) => ((m[i[key]] = (m[i[key]] || 0) + 1), m), {});
 const meta = {
-  updated: new Date().toISOString().slice(0, 10),
+  // 用抓取时间而不是构建时间：本地重建页面不该把日期往后挪
+  updated: (() => { try { return JSON.parse(fs.readFileSync('data/raw/_report.json', 'utf8')).at.slice(0, 10); } catch { return new Date().toISOString().slice(0, 10); } })(),
   total: items.length,
   stores: tally('store'),
   cats: tally('cat'),

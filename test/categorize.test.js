@@ -165,3 +165,8 @@ test('空串 -> 其他', () => {
 test('undefined -> 其他', () => {
   assert.equal(toCat(undefined), '其他');
 });
+
+test('Sauzen, kruiden en conserven / Sauzen, vinaigrettes en azijn -> 调味酱料（不能被 conserv 撞成粮油面食）', () => {
+  assert.equal(toCat('Sauzen, kruiden en conserven'), '调味酱料');
+  assert.equal(toCat('Sauzen, vinaigrettes en azijn'), '调味酱料');
+});

@@ -123,6 +123,9 @@ h1{font-size:28px;font-weight:600;line-height:1.2;letter-spacing:-.01em;
 .sel:hover .chev{color:var(--text)}
 .count{margin-left:auto;font-size:12px;color:var(--text-3);
   font-variant-numeric:tabular-nums}
+.chk{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;color:var(--text-2);
+  cursor:pointer;user-select:none}
+.chk input{accent-color:var(--primary)}
 
 /* ============ 结果列表 ============ */
 ul.list{list-style:none;margin:16px 0 0;padding:0;
@@ -132,6 +135,7 @@ ul.list:empty{display:none}
 li.row{display:grid;grid-template-columns:1fr auto;gap:0 16px;align-items:start;
   padding:12px 16px}
 li.row+li.row{border-top:1px solid var(--line)}
+.row-expired{opacity:.55}
 .info{min-width:0}
 .nm{font-size:14px;font-weight:500;line-height:1.4;color:var(--text);overflow-wrap:anywhere}
 .nm a{color:inherit;text-decoration:none;transition:color 120ms ease}
@@ -233,6 +237,7 @@ footer a:hover .ext{color:var(--primary)}
     </select>
     <svg class="ic chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 8.5 4 4 4-4"/></svg>
   </div>
+  <label class="chk"><input type="checkbox" id="showExpired"> 显示已结束</label>
   <span class="count" id="count"></span>
 </div>
 
@@ -345,17 +350,38 @@ const storeZhOf = {};
 ITEMS.forEach(i => { if (!storeZhOf[i.store]) storeZhOf[i.store] = i.store_zh; });
 const storeLabel = s => STORE_LABEL[s] || storeZhOf[s] || s;
 const CN_COUNT = ["","一","两","三","四","五","六","七"];
-let shown = 60, state = {q:"", store:"", cat:"", sort:"pct"};
+let shown = 60, state = {q:"", store:"", cat:"", sort:"pct", showExpired:false};
+
+/* ---------- 有效期：按打开页面那一刻的本地日期算，不用构建时算好的 val 兜底 ---------- */
+const TODAY = (d => new Date(d.getFullYear(), d.getMonth(), d.getDate()))(new Date());
+function daysUntil(ends){
+  const [y,m,d] = ends.split("-").map(Number);
+  return Math.ceil((new Date(y, m-1, d) - TODAY) / 864e5);
+}
+// "下周起 · 09/16"、"09/11 起" 这类还没开始的档期，原样保留 val，不当"还剩几天"处理
+const STARTS_SOON = /^下周起|起$/;
+ITEMS.forEach(i => { i._expired = !!i.ends && daysUntil(i.ends) < 0; });
+function validity(i){
+  if (!i.ends) return i.val;
+  if (i._expired) return "已结束";
+  const d = daysUntil(i.ends);
+  if (d === 0) return "最后一天";
+  if (STARTS_SOON.test(i.val || "")) return i.val;
+  return `还剩 ${d} 天`;
+}
 
 /* ---------- stat strip ---------- */
-const deep = ITEMS.filter(i => i.pct && i.pct >= 50).length;
+const activeItems = ITEMS.filter(i => !i._expired);
+const deep = activeItems.filter(i => i.pct && i.pct >= 50).length;
+const activeWithPct = activeItems.filter(i => i.pct).length;
 $("#stats").innerHTML = [
-  [META.total, "件本周促销"],
-  [META.with_pct, "件标了折扣"],
+  [activeItems.length, "件本周促销"],
+  [activeWithPct, "件标了折扣"],
   [deep, "件五折起"],
   [META.updated.slice(5), "更新"]
 ].map(([b,s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join("");
-$("#stamp").textContent = `本页数据抓取于 ${META.updated}，共 ${META.total} 条。每周传单换新后会自动刷新。`;
+const expiredCount = ITEMS.length - activeItems.length;
+$("#stamp").textContent = `数据抓取于 ${META.updated}，共 ${META.total} 条${expiredCount ? `，其中 ${expiredCount} 条已过期` : ""}。周一至周四每天早上自动刷新。`;
 const storeKeys = Object.keys(META.stores);
 $("#sub").textContent = `${storeKeys.map(storeLabel).join("、")} ${CN_COUNT[storeKeys.length] || storeKeys.length}家本周促销商品全收录。搜中文就行——输入「意面」也能搜到 pasta、spaghetti、Barilla。`;
 $("#srclinks").innerHTML = storeKeys.filter(k => SRC[k])
@@ -402,6 +428,7 @@ function filtered(){
   const T = terms(state.q);
   const excludePets = state.q.trim() && !state.cat && !isPetQuery(state.q, T);
   return ITEMS.filter(i => {
+    if (!state.showExpired && i._expired) return false;
     if (state.store && i.store !== state.store) return false;
     if (state.cat && i.cat !== state.cat) return false;
     if (excludePets && i.cat === "宠物") return false;
@@ -429,7 +456,8 @@ function card(i){
   // 纯百分比文案（如 -65%）和右侧折扣徽章信息重复，徽章存在时就不再重复展示
   const dtIsPurePct = i.dt && /^-\d+([.,]\d+)?%$/.test(i.dt.replace(/\s+/g, ""));
   const showDt = i.dt && !(dtIsPurePct && flash);
-  return `<li class="row">
+  const vtext = validity(i);
+  return `<li class="row${i._expired ? " row-expired" : ""}">
     <div class="info">
       <div class="nm">${i.url ? `<a href="${i.url}" target="_blank" rel="noopener">${nm}${IC_EXT}</a>` : nm}</div>
       ${i.name && i.name !== i.name_zh ? `<div class="orig">${esc(i.name)}</div>` : ""}
@@ -437,7 +465,7 @@ function card(i){
         <span class="tag">${esc(storeLabel(i.store))}</span>
         <span class="dot">·</span><span class="cat">${CAT_ICON[i.cat] || ""}${esc(i.cat)}</span>
         ${showDt ? `<span class="deal">${esc(i.dt)}</span>` : ""}
-        ${i.val ? `<span class="dot">·</span><span>${esc(i.val)}</span>` : ""}
+        ${vtext ? `<span class="dot">·</span><span>${esc(vtext)}</span>` : ""}
       </div>
     </div>
     <div class="price">
@@ -490,6 +518,7 @@ $("#quick").addEventListener("click", e => {
 $("#store").addEventListener("change", e => set({store: e.target.value}));
 $("#cat").addEventListener("change", e => set({cat: e.target.value}));
 $("#sort").addEventListener("change", e => set({sort: e.target.value}));
+$("#showExpired").addEventListener("change", e => set({showExpired: e.target.checked}));
 $("#more").addEventListener("click", () => { shown += 80; render(); });
 
 render();
