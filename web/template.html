@@ -27,6 +27,7 @@
 
   --font:"IBM Plex Sans","PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Microsoft YaHei",sans-serif;
   --r:8px;
+  --thumb-op:1;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
@@ -36,6 +37,7 @@
     --primary:#5B8DEB; --primary-hover:#7AA3F0;
     --on-primary:#0F1216;
     --tint:rgba(91,141,235,.10); --tint-line:rgba(91,141,235,.32);
+    --thumb-op:.92;
   }
 }
 :root[data-theme="dark"]{
@@ -45,6 +47,7 @@
   --primary:#5B8DEB; --primary-hover:#7AA3F0;
   --on-primary:#0F1216;
   --tint:rgba(91,141,235,.10); --tint-line:rgba(91,141,235,.32);
+  --thumb-op:.92;
 }
 
 *{box-sizing:border-box}
@@ -132,15 +135,20 @@ ul.list{list-style:none;margin:16px 0 0;padding:0;
   background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
   overflow:hidden}
 ul.list:empty{display:none}
-li.row{display:grid;grid-template-columns:1fr auto;gap:0 16px;align-items:start;
+li.row{display:grid;grid-template-columns:48px 1fr auto;gap:0 16px;align-items:start;
   padding:12px 16px}
 li.row+li.row{border-top:1px solid var(--line)}
 .row-expired{opacity:.55}
 .info{min-width:0}
+.thumb{display:grid;place-items:center;width:48px;height:48px;overflow:hidden;
+  background:var(--gray-0);border:1px solid var(--line);border-radius:6px;
+  opacity:var(--thumb-op)}
+.thumb>*{grid-area:1/1}
+.thumb img{width:100%;height:100%;object-fit:contain;padding:3px}
+.thumb .ic-sm{width:20px;height:20px;color:var(--text-3)}
 .nm{font-size:14px;font-weight:500;line-height:1.4;color:var(--text);overflow-wrap:anywhere}
 .nm a{color:inherit;text-decoration:none;transition:color 120ms ease}
 .nm a:hover{color:var(--primary)}
-.nm a:hover .ext{color:var(--primary)}
 .ext{margin-left:2px}
 .orig{font-size:12px;line-height:1.4;color:var(--text-3);overflow-wrap:anywhere}
 .meta{display:flex;flex-wrap:wrap;gap:0 8px;align-items:center;margin-top:8px;
@@ -165,6 +173,13 @@ li.row+li.row{border-top:1px solid var(--line)}
 .flash.unc{background:none;color:var(--text-3);border-color:var(--line);
   font-weight:400;cursor:help}
 .flash.unc .ic-sm{color:inherit}
+.go{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;
+  background:var(--tint);border:1px solid var(--tint-line);border-radius:999px;
+  color:var(--primary);font-size:12.5px;font-weight:500;line-height:1.5;
+  text-decoration:none;white-space:nowrap;
+  transition:color 120ms ease,background-color 120ms ease,border-color 120ms ease}
+.go:hover{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.go .ic-sm{width:14px;height:14px;margin-left:0;color:inherit}
 
 .empty{padding:48px 16px;text-align:center;color:var(--text-2)}
 .empty b{display:block;font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px}
@@ -192,9 +207,11 @@ footer a:hover .ext{color:var(--primary)}
 @media (max-width:420px){
   .wrap{padding:0 12px 48px}
   .stat{padding:0 8px}
-  li.row{padding:12px;gap:0 12px}
+  li.row{grid-template-columns:44px 1fr auto;padding:12px;gap:0 12px}
+  .thumb{width:44px;height:44px}
   .sel select{max-width:9.5rem}
   .price-sub{flex-wrap:wrap}
+  .price-sub .go{flex-basis:100%;display:inline-flex;justify-content:center;margin-left:auto;width:max-content;margin-top:2px}
 }
 </style>
 </head>
@@ -305,6 +322,7 @@ const SYN = {
 /* 图标：与页面 Icon System 同一套线条参数，只在 JS 渲染的片段里复用 */
 const IC_EXT = `<svg class="ic-sm ext" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 12.5 12.5 7.5"/><path d="M8 7.5h4.5V12"/></svg>`;
 const IC_INFO = `<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M10 9.4v3.8"/><path d="M10 6.9h.01"/></svg>`;
+const IC_IMG = `<svg class="ic-sm" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.8" y="4.2" width="14.4" height="11.6" rx="1.6"/><path d="m2.8 13 3.6-3.4 3.2 3 2.6-2.4 5 4.6"/><circle cx="7.2" cy="8" r="1.1"/></svg>`;
 
 /* 品类图标：同一套 20 网格 / 1.5px 线宽，卡片元信息行里用 */
 const CAT_ICON = {
@@ -457,9 +475,17 @@ function card(i){
   const dtIsPurePct = i.dt && /^-\d+([.,]\d+)?%$/.test(i.dt.replace(/\s+/g, ""));
   const showDt = i.dt && !(dtIsPurePct && flash);
   const vtext = validity(i);
+  // 缩略图：图挂了就让 <img> 自毁，露出垫在同一网格位的占位图标
+  const pic = `${CAT_ICON[i.cat] || IC_IMG}${i.img
+    ? `<img src="${esc(i.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ""}`;
+  // 有官网链接时缩略图也可点，但它和商品名指向同一处，不重复占用 Tab 和读屏
+  const thumb = i.url
+    ? `<a class="thumb" href="${esc(i.url)}" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">${pic}</a>`
+    : `<div class="thumb">${pic}</div>`;
   return `<li class="row${i._expired ? " row-expired" : ""}">
+    ${thumb}
     <div class="info">
-      <div class="nm">${i.url ? `<a href="${i.url}" target="_blank" rel="noopener">${nm}${IC_EXT}</a>` : nm}</div>
+      <div class="nm">${i.url ? `<a href="${esc(i.url)}" target="_blank" rel="noopener">${nm}</a>` : nm}</div>
       ${i.name && i.name !== i.name_zh ? `<div class="orig">${esc(i.name)}</div>` : ""}
       <div class="meta">
         <span class="tag">${esc(storeLabel(i.store))}</span>
@@ -474,6 +500,7 @@ function card(i){
         ${hasBoth ? `<span class="po">${euro(i.po)}</span>`
                   : `<span class="only">${i.mb ? (i.po ? "整组价" : "单件价") : "促销价"}</span>`}
         ${flash}
+        ${i.url ? `<a class="go" href="${esc(i.url)}" target="_blank" rel="noopener">官网${IC_EXT}</a>` : ""}
       </span>
     </div>
   </li>`;

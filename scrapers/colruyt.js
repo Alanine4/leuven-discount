@@ -86,6 +86,8 @@ export default async function scrapeColruyt({ withPromoDetail = true } = {}) {
       // dump 只给顶层分类名（酒、咖啡都挂在 "Dranken" 下），细分靠商品名
       category: toCatWithName(p.topCategoryName || '', p.LongName || p.name || ''),
       image: p.squareImage || p.fullImage || '',
+      // 商品页用 commercialArticleNumber，不是 productId（实测 /nl/producten/{commercialArticleNumber} 200，productId 410）
+      url: p.commercialArticleNumber ? `https://www.colruyt.be/nl/producten/${p.commercialArticleNumber}` : '',
       id: String(p.productId || p.commercialArticleNumber || ''),
     });
   });
