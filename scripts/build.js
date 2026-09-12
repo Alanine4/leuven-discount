@@ -19,7 +19,10 @@ items = items.map((i) => {
   };
 });
 
-items = dedupe(items);
+// 两个价格都缺的记录（Carrefour 偶尔渲染不出价格）在页面上只会显示一个"—"，留着没用
+const priced = items.filter((i) => i.po != null || i.pp != null);
+const dropped = items.length - priced.length;
+items = dedupe(priced);
 items.sort((a, b) => {
   const rank = (x) => (x.unc ? 0 : x.pct || 0);   // 存疑的折扣按"未知"处理，不占榜首
   return rank(b) - rank(a) || (a.pp ?? 1e9) - (b.pp ?? 1e9);
@@ -45,6 +48,6 @@ fs.writeFileSync('data/untranslated.json', JSON.stringify([...missing].sort(), n
 const tpl = fs.readFileSync('web/template.html', 'utf8');
 fs.writeFileSync('public/index.html', tpl.replace('/*__DATA__*/', JSON.stringify(payload)));
 
-console.log(`共 ${meta.total} 条 | 有折扣力度 ${meta.with_pct} 条 | 待翻译 ${missing.size} 个商品名`);
+console.log(`共 ${meta.total} 条 | 有折扣力度 ${meta.with_pct} 条 | 无价丢弃 ${dropped} 条 | 待翻译 ${missing.size} 个商品名`);
 console.log('各店：', Object.entries(meta.stores).map(([k, v]) => `${k} ${v}`).join(' · '));
 console.log('→ public/index.html');

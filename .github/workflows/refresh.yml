@@ -4,6 +4,9 @@ on:
   schedule:
     # AH/ALDI 周一、Carrefour 周二或周三、Lidl/Colruyt 周三、Lidl/ALDI 周末档周四上线；周一到周四每天早 7 点（比利时时间）各跑一次。UTC 时间
     - cron: '0 5 * * 1-4'
+    # Colruyt 的每日 dump 大约 12:46 UTC 才落到 bucket，早上那趟只能拿到前一天的货。
+    # 下午 16 点（比利时时间）再跑一趟，把 Colruyt 当天的 dump 补上。
+    - cron: '0 14 * * 1-4'
   workflow_dispatch:        # 也可以在 GitHub 页面上手动点一下就跑
 
 permissions:

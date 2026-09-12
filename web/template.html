@@ -472,7 +472,7 @@ function card(i){
       <span class="pp">${price != null ? euro(price) : "—"}</span>
       <span class="price-sub">
         ${hasBoth ? `<span class="po">${euro(i.po)}</span>`
-                  : `<span class="only">${i.mb ? "整组价" : "促销价"}</span>`}
+                  : `<span class="only">${i.mb ? (i.po ? "整组价" : "单件价") : "促销价"}</span>`}
         ${flash}
       </span>
     </div>

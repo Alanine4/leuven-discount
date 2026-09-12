@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { toCat } from '../lib/categorize.js';
+import { toCat, toCatWithName } from '../lib/categorize.js';
 
 // ---- 修复的误判用例：短关键词子串撞车 ----
 
@@ -169,4 +169,65 @@ test('undefined -> 其他', () => {
 test('Sauzen, kruiden en conserven / Sauzen, vinaigrettes en azijn -> 调味酱料（不能被 conserv 撞成粮油面食）', () => {
   assert.equal(toCat('Sauzen, kruiden en conserven'), '调味酱料');
   assert.equal(toCat('Sauzen, vinaigrettes en azijn'), '调味酱料');
+});
+
+// ---- 酒类 / 咖啡茶 从「饮料」里分出来：顶层分类 + 商品名一起喂进来时要命中细分类 ----
+
+test('dranken + 啤酒名 -> 酒类', () => {
+  assert.equal(toCat('dranken Jupiler Blond Bier 24x25cl'), '酒类');
+});
+
+test('dranken + 咖啡胶囊名 -> 咖啡茶', () => {
+  assert.equal(toCat('dranken Nespresso Lungo capsules'), '咖啡茶');
+});
+
+test('dranken + 可乐名 -> 仍是饮料', () => {
+  assert.equal(toCat('dranken Coca-Cola Zero 1.5L'), '饮料');
+});
+
+test('只有顶层分类 Dranken -> 饮料', () => {
+  assert.equal(toCat('Dranken'), '饮料');
+});
+
+test('Champagne Brut 75cl -> 酒类', () => {
+  assert.equal(toCat('Champagne Brut 75cl'), '酒类');
+});
+
+test('dranken + Ice Tea 不被 tea 关键词拉走 -> 饮料', () => {
+  assert.equal(toCat('dranken Peach Ice Tea 1.5 L'), '饮料');
+});
+
+// ---- toCatWithName()：顶层分类 + 商品名 ----
+
+test('toCatWithName：顶层够细就不看商品名', () => {
+  assert.equal(toCatWithName('zuivel', "l'Original Koffie 4 x 100 g"), '乳制品奶酪');
+});
+
+test('toCatWithName：dranken + 啤酒 -> 酒类', () => {
+  assert.equal(toCatWithName('dranken', 'POSTEL abdijbier dubbel 7,0%vol 6x33cl'), '酒类');
+});
+
+test('toCatWithName：dranken + 茶包 -> 咖啡茶', () => {
+  assert.equal(toCatWithName('dranken', 'TEA OF LIFE Rooibos Royal Bio 20st'), '咖啡茶');
+});
+
+test('toCatWithName：dranken + 瓶装冰茶 -> 仍是饮料', () => {
+  assert.equal(toCatWithName('dranken', 'FUZE TEA Green Tea Mango-Chamomile 40cl'), '饮料');
+});
+
+test('toCatWithName：dranken + 果味汽水不被 fruit 拉去果蔬', () => {
+  assert.equal(toCatWithName('dranken', 'SPA FRUIT Lime-Ginger 40cl'), '饮料');
+});
+
+test('toCatWithName：dranken + 咖啡甜点口味不被 dessert 拉去零食', () => {
+  assert.equal(toCatWithName('dranken', 'DOUWE EGBERTS Dessert pads 32st'), '饮料');
+});
+
+test('toCatWithName：顶层认不出时按商品名兜底', () => {
+  assert.equal(toCatWithName('', 'IMPERIAL Bakmeel Zelfrijzend 1kg'), '粮油面食');
+});
+
+test('chips en aperitief -> 零食甜点（aperitief 单数是零食区，不能撞酒类）', () => {
+  assert.equal(toCat('chips en aperitief'), '零食甜点');
+  assert.equal(toCat('Bier, wijn, aperitieven'), '酒类');
 });

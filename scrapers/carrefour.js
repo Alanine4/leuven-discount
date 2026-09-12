@@ -7,7 +7,7 @@
 import * as cheerio from 'cheerio';
 import { normalize, sleep } from '../lib/normalize.js';
 import { fetchHTML, closeBrowser } from '../lib/browser.js';
-import { toCat } from '../lib/categorize.js';
+import { toCatWithName } from '../lib/categorize.js';
 
 const PER_PAGE = 36;
 const SOURCES = [
@@ -81,7 +81,8 @@ export function parsePage(html, { store, storeZh }) {
         || $tile.find('.promo-tag-text').first().text().trim(),
       validity: days(endMs),
       endsAt,
-      category: toCat(catMap.get(gtmItem.item_category || '') || ''),
+      // 页面只给顶层品类（酒、咖啡都挂在 "Dranken" 下），细分靠商品名
+      category: toCatWithName(catMap.get(gtmItem.item_category || '') || '', name),
       url: href.startsWith('http') ? href : `https://www.carrefour.be${href}`,
       image: img.attr('src') || img.attr('data-src') || '',
       id,

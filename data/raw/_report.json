@@ -1,35 +1,35 @@
 {
- "at": "2026-09-10T11:02:40.962Z",
+ "at": "2026-09-12T16:46:02.395Z",
  "report": [
   {
    "store": "lidl",
    "ok": true,
-   "count": 272,
-   "sec": "30.7"
+   "count": 243,
+   "sec": "27.9"
   },
   {
    "store": "colruyt",
    "ok": true,
-   "count": 1376,
-   "sec": "32.5"
+   "count": 1384,
+   "sec": "19.6"
   },
   {
    "store": "carrefour",
    "ok": true,
-   "count": 1050,
-   "sec": "101.4"
+   "count": 1060,
+   "sec": "176.4"
   },
   {
    "store": "aldi",
    "ok": true,
-   "count": 379,
-   "sec": "4.4"
+   "count": 327,
+   "sec": "1.8"
   },
   {
    "store": "ah",
    "ok": true,
-   "count": 68,
-   "sec": "40.0"
+   "count": 132,
+   "sec": "9.1"
   }
  ]
 }

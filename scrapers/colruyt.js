@@ -1,7 +1,7 @@
 // Colruyt：官方 API 有 Akamai 反爬（要 key + cookie + 代理池），不值得硬碰。
 // 改用 BelgianNoise 每日 dump 的公开 GCS bucket，免鉴权、字段是官方接口原样透传。
 import { normalize, get, sleep } from '../lib/normalize.js';
-import { toCat } from '../lib/categorize.js';
+import { toCatWithName } from '../lib/categorize.js';
 
 const BUCKET = 'https://storage.googleapis.com/colruyt-products';
 const PREFIX = 'colruyt-products';
@@ -31,15 +31,22 @@ function toIsoDate(d) {
   return m ? `${m[3]}-${m[2]}-${m[1]}` : null;
 }
 
-/** "2de aan -50%" 这种文案接口不给，要从 benefit 拼出来 */
-function benefitText(promo) {
-  const b = promo?.benefit?.[0];
-  if (!b) return '';
-  const pctOff = b.benefitPercentage;
-  const min = b.minLimit;
-  if (pctOff && min > 1) return `${min}de aan -${pctOff}%`;
-  if (pctOff) return `-${pctOff}%`;
-  return '';
+/** 促销文案接口不给，要从 benefit 拼出来。
+ *  benefitPercentage 是整笔的减免比例、minLimit 是拿到该比例要买够的件数（limitUnit 'S' = stuks）：
+ *  min<=1 就是单件直折；min>1 且比例正好等于 m/(n+m) 的是"买 n 送 m"
+ *  （33.34% + min 3 = 买三付二）；对不上送几件的，如实写成"买够 N 件享 -X%"。
+ *  阶梯促销（多个 benefit）取减免比例最大的那一档，也就是买满最多件时的力度。 */
+export function benefitText(promo) {
+  const tiers = (promo?.benefit || []).filter((b) => b.benefitPercentage > 0);
+  if (!tiers.length) return '';
+  const best = tiers.reduce((a, b) => (b.benefitPercentage > a.benefitPercentage ? b : a));
+  const pctOff = best.benefitPercentage;
+  const min = best.minLimit || 0;
+  if (min <= 1) return `-${pctOff}%`;
+  for (let free = 1; free < min; free++) {
+    if (Math.abs(pctOff / 100 - free / min) < 0.005) return `${min - free}+${free} gratis`;
+  }
+  return `-${pctOff}% bij ${min} stuks`;
 }
 
 export default async function scrapeColruyt({ withPromoDetail = true } = {}) {
@@ -76,7 +83,8 @@ export default async function scrapeColruyt({ withPromoDetail = true } = {}) {
       discountText: benefitText(det),
       validity: left > 0 ? `还剩 ${left} 天` : (end ? '即将结束' : ''),
       endsAt: end,
-      category: toCat(p.topCategoryName || ''),
+      // dump 只给顶层分类名（酒、咖啡都挂在 "Dranken" 下），细分靠商品名
+      category: toCatWithName(p.topCategoryName || '', p.LongName || p.name || ''),
       image: p.squareImage || p.fullImage || '',
       id: String(p.productId || p.commercialArticleNumber || ''),
     });

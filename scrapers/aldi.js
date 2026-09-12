@@ -110,15 +110,21 @@ export default async function scrapeAldi() {
     // 把整组原价放进 priceValue（379 条里 2 条）。两个数里小的那个才是要付的价。
     const price = win.priceValue ?? null;
     const strike = win.strikePrice?.strikePriceValue ?? null;
-    const swapped = strike !== null && price !== null && strike < price;
+    const promoText = win.priceTagLabels?.promoText1 || '';
+    // "2 voor 2 euro"：两个价格字段里一个是单件挂牌价、一个是整组促销总价（2.58 / 2.00），
+    // 谁落在哪个字段不固定。折扣全靠文案算（买 2 件共 2€ vs 单件 2.58€ = -61%），
+    // 所以这里把大的那个当单件挂牌价交给 effectiveDiscount，原价留空，免得再被当划线价除一遍。
+    const perUnitDeal = /(\d+)\s*voor\s*[\d.,]+\s*(?:€|eur)/i.test(promoText);
+    const listPrice = Math.max(price ?? 0, strike ?? 0) || null;
+    const swapped = !perUnitDeal && strike !== null && price !== null && strike < price;
     rows.push(normalize({
       store: 'ALDI', storeZh: 'ALDI',
       name: p.name,
       brand: '',                        // ALDI 数据里没有品牌字段，绝大多数也是自有品牌
-      priceOrig: swapped ? price : strike,
-      pricePromo: swapped ? strike : price,
+      priceOrig: perUnitDeal ? null : (swapped ? price : strike),
+      pricePromo: perUnitDeal ? listPrice : (swapped ? strike : price),
       unitPrice: unitPrice(win),
-      discountText: win.priceTagLabels?.promoText1 || '',
+      discountText: promoText,
       validity: validityText(win, today),
       endsAt: win.end,
       category: category(p, sectionTitle),

@@ -188,3 +188,28 @@ test('-X€ 直减接近单价 -> 标 uncertain', () => {
   const r = effectiveDiscount({ pricePromo: 6.29, discountText: '-4.69€' });
   assert.equal(r.pct, 75); assert.equal(r.uncertain, true);
 });
+
+// ---- Colruyt 折扣语义修正（benefitPercentage 是整单减免比例，minLimit>1 = 要买够 N 件）----
+
+test('mPct: -25% bij 2 stuks -> 25%, multibuy', () => {
+  const r = effectiveDiscount({ priceOrig: null, pricePromo: null, discountText: '-25% bij 2 stuks' });
+  assert.deepEqual(r, { pct: 25, multibuy: true, uncertain: false });
+});
+
+test('mPct: -20% vanaf 3 stuks -> 20%, multibuy', () => {
+  const r = effectiveDiscount({ priceOrig: null, pricePromo: null, discountText: '-20% vanaf 3 stuks' });
+  assert.deepEqual(r, { pct: 20, multibuy: true, uncertain: false });
+});
+
+test('mFree: 2+1 gratis（无空格）-> 33%, multibuy', () => {
+  const r = effectiveDiscount({ priceOrig: null, pricePromo: null, discountText: '2+1 gratis' });
+  assert.deepEqual(r, { pct: 33, multibuy: true, uncertain: false });
+});
+
+// ---- ALDI "N voor X euro"：pricePromo 传单件挂牌价，priceOrig 留 null ----
+
+test('mVoorX: 2 voor 2 euro + 单件挂牌价 2.58 -> 61%, multibuy', () => {
+  const r = effectiveDiscount({ priceOrig: null, pricePromo: 2.58, discountText: '2 voor 2 euro' });
+  assert.equal(r.pct, 61);
+  assert.equal(r.multibuy, true);
+});

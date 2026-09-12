@@ -61,7 +61,9 @@ export default async function scrapeLidl() {
     const p = d.price || {};
     const disc = p.discount || {};
     const strike = p.oldPrice ?? p.recommendedPrice ?? disc.deletedPrice ?? null;   // Lidl 自己标的划线价
-    const endMs = d.storeEndDate ? d.storeEndDate * 1000 : (p.endDate ? Date.parse(p.endDate) : null);
+    // p.endDate 是促销价的结束时刻（"2026-09-15T22:00Z" = 布鲁塞尔 16 日 0 点，所以 UTC 切片得到的
+    // 09-15 就是最后一个能按促销价买到的日子）；storeEndDate 是商品彻底下架日，往往晚一周，只当兜底。
+    const endMs = p.endDate ? Date.parse(p.endDate) : (d.storeEndDate ? d.storeEndDate * 1000 : null);
     return normalize({
       store: 'Lidl', storeZh: 'Lidl',
       name: d.fullTitle || d.title,
