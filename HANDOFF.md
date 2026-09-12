@@ -61,7 +61,7 @@
 | Carrefour Express 抓取 | ✅ 已跑通 | 本周（09-12 抓）91 条，覆盖率比 Market 低，见第 4 节 |
 | ALDI 抓取 | ✅ 已跑通 | 本周（09-12 抓）326 条 |
 | AH 抓取 | ✅ 已跑通 | 本周（09-12 抓）124 条，周六起接口已同时带出下周（见第 7 节）；靠有头浏览器绕过 Akamai，见第 4 节；CI 里的 xvfb 方案还没实测过，见第 7 节 |
-| Delhaize 抓取 | ⛔ 未开始 | 见第 4 节 |
+| Delhaize 抓取 | ✅ 已跑通 | 本周（09-12 抓）1316 条，靠有头浏览器绕过 Akamai + 重放促销页的 GraphQL persisted query，见第 4 节 |
 | 合并/出页面 | ✅ 完成 | `scripts/build.js`，六家本周（09-12 抓）合计 3001 条 |
 | 中文名词表 | ✅ 已冷启动 | `lib/glossary.json` 现有 3667 条（人工分批翻译写入），本周约 95% 商品有中文名；新品的增量翻译仍靠 `scripts/translate.js`，还没配 `ANTHROPIC_API_KEY` |
 | 网页模板 | ✅ 完成 | `web/template.html`，搜索/筛选/排序都做好了 |
@@ -69,7 +69,7 @@
 | 推到 GitHub | ✅ 完成 | https://github.com/Alanine4/leuven-discount ，公开仓库，分支 `main` |
 | Vercel 部署 | ✅ 完成 | https://leuven-zhekou.vercel.app ，项目名 `leuven-zhekou`（团队 Yichuan's projects），推送即自动部署 |
 
-**一句话总结当前位置**：六家（Lidl、Colruyt、ALDI、Carrefour Market、Carrefour Express、Albert Heijn）端到端跑通了，`npm run refresh` 本周（09-12 抓）一次拉完 3001 条，`npm test` 95 个用例全绿。浏览器验收也做过：本地起 `python -m http.server 8765 -d public`，用 Playwright 脚本（`data/debug/check-page.mjs`、`check-search.mjs`，已 gitignore）搜「意面」42 条全是意面没有牙膏，「鸡肉」不再混进猫粮狗粮，「三文鱼」只出 zalm，来源链接全是官方域名，没有 JS 报错，手机视口下布局正常。AH 靠有头浏览器绕过了 Akamai（见第 4 节），但这个方案还没在 GitHub Actions 的 CI 环境里实测过；Delhaize 还没动。仓库在 GitHub（Alanine4/leuven-discount），线上链接 https://leuven-zhekou.vercel.app ，推送自动部署。下一步见第 7 节，第一件事是手动触发一次 Actions 确认 AH 在 CI 里能不能过 Akamai。
+**一句话总结当前位置**：七家（Lidl、Colruyt、ALDI、Carrefour Market、Carrefour Express、Albert Heijn、Delhaize）端到端跑通了，`npm run refresh` 本周（09-12 抓）一次拉完 4325 条，`npm test` 110 个用例全绿。浏览器验收也做过：本地起 `python -m http.server 8765 -d public`，用 Playwright 脚本（`data/debug/check-page.mjs`、`check-search.mjs`，已 gitignore）搜「意面」42 条全是意面没有牙膏，「鸡肉」不再混进猫粮狗粮，「三文鱼」只出 zalm，来源链接全是官方域名，没有 JS 报错，手机视口下布局正常。AH 靠有头浏览器绕过了 Akamai（见第 4 节），但这个方案还没在 GitHub Actions 的 CI 环境里实测过；Delhaize 09-12 接上了，路子和 AH 一样（有头浏览器 + 同源重放，见第 4 节），CI 里同样没验过。仓库在 GitHub（Alanine4/leuven-discount），线上链接 https://leuven-zhekou.vercel.app ，推送自动部署。下一步见第 7 节，第一件事是手动触发一次 Actions 确认 AH 在 CI 里能不能过 Akamai。
 
 ### 审计方法
 
@@ -97,7 +97,8 @@ C:\Projects\Leuven_discount\
 │   ├── colruyt.js                 # ✅ 已跑通
 │   ├── carrefour.js               # ✅ 已跑通
 │   ├── aldi.js                    # ✅ 已跑通
-│   └── ah.js                      # ✅ 已跑通，有头浏览器绕过 Akamai，见第 4 节
+│   ├── ah.js                      # ✅ 已跑通，有头浏览器绕过 Akamai，见第 4 节
+│   └── delhaize.js                # ✅ 已跑通，同样有头浏览器 + 重放 GraphQL，见第 4 节
 │
 ├── scripts/
 │   ├── scrape.js                  # 跑默认清单的 scraper → data/raw/*.json（单家失败不影响其他家）
@@ -240,17 +241,87 @@ https://www.carrefour.be/nl/al-onze-express-promoties?p=N  # 本周 92 条，3 �
 - 商品 URL `https://www.aldi.be/product/{productSlug}.html`，图片 `{asset.url}?bfc=on&wid=360&fmt=webp-alpha`。
 - 有 bot 防护迹象，但目前没触发过 403。如果哪天触发，把 `scrapers/aldi.js` 取页那部分换成 `lib/browser.js` 的 `fetchHTML()`，解析函数 `extractOffer(html)` 不用动。
 
-### Delhaize（未开始）
+### Delhaize（已跑通，2026-09-12 实测，和 AH 一个套路）
 
-- SAP Hybris / SAP Commerce 后端（`/authorizationserver/oauth/token` 返回 401 而不是 404，证实了）
-- `/api/v1/*` **一律 403**，连不存在的路径也 403 → 前置反爬网关，不是资源不存在
-- 标准 OCC 路径（`/occ/v2/`、`/rest/v2/`、`/ycommercewebservices/`）**全部 404**
-- 全站 JS 渲染，分类页/promo 页 HTML 里一个商品都没有
-- **robots 红线**：`Disallow: */search/*` 和 `*/search?*`，任何搜索/筛选类 URL 都禁止
-- 路线：Playwright 打开分类页，监听 network 把 `/api/v1/...` 的真实 URL 和必需 header（Bearer / cookie / x-*）打印出来，之后才谈得上直接调
-- 门店清单没阻力：`stores.delhaize.be` robots 全放行，有 sitemap，400+ 家店
-- 旁证：Apify 上 Colruyt/Dirk/AH/Aldi 都有现成 scraper，**唯独没有 Delhaize**；GitHub 上也没有任何 delhaize scraper 开源项目。它确实比同行难搞
-- **建议：放到最后做，或者这家继续用旧方案（LLM 读 promotiez.be）兜着**
+**之前"403 是前置反爬网关"的结论只对了一半**：挡人的不是 Hybris，是 Akamai Bot Manager
+（响应里发 `bm_sz` / `_abck` / `ak_bmsc` / `bm_sv`，和 ah.be 同一套）。有头浏览器打开页面后，
+在 `page.evaluate` 里同源 `fetch` 一律 200。裸 curl / 无头照样 403。
+
+**促销页真实 URL**：`https://www.delhaize.be/nl/Promolandingpage`
+（首页导航里那个"Promoties"链接就是它；交接文档里猜的 `/nl/promotions` 是 404。
+`https://www.delhaize.be/nl/folder` 是 Publitas 的电子传单，商品数据在
+`view.publitas.com/.../hotspots_data.json`，不用它 —— 接口那条路数据全得多。）
+
+**接口**（GraphQL，Apollo persisted query，走 GET）：
+
+```
+GET https://www.delhaize.be/api/v1/?operationName=ProductList
+    &variables={"productListingType":"PROMOTION_SEARCH","lang":"nl",...,"lazyLoadCount":48,
+                "pageNumber":0,"sort":"categoryOrder","hideProductsWithoutPromo":false,
+                "hideUnavailableProducts":true,"customerSegment":"newPromoPageSegment"}
+    &extensions={"persistedQuery":{"version":1,"sha256Hash":"ef54fc2d…"}}
+Header: x-apollo-operation-name: ProductList     ← 不带会被 Apollo 的 CSRF 拦成 400
+        （cookie 靠 credentials:'include' 自带，Akamai 那几个就在里面）
+```
+
+- **只能重放，发不了自定义查询**：服务端只认注册过的 persisted query 哈希。哈希跟前端构建版本绑定，
+  所以 `scrapers/delhaize.js` 每次跑都从促销页首屏自己发的那个 ProductList 请求里现读
+  （`lib/browser.js` 的 `headedPage()` 新增了 `onPage` 钩子，监听器要赶在 `goto` 之前挂上），
+  读不到才退回硬编码的 `FALLBACK_HASH`。
+- **不必带 Bearer**：匿名就能拿全量促销，不需要登录用户 token。促销本身几乎全是
+  `redemptionLevel: "MEMBER"`（要 SuperPlus 卡），但接口不要求登录也能看到。
+- **`lazyLoadCount` 服务端封顶 48**（60/100/200/500 一律 500 `BAD_USER_INPUT`），`pageNumber` 从 **0** 开始。
+  本周 `totalResults` 1358 = 29 页，**一趟 29 个请求**，页间 sleep 1600ms，整趟约 70 秒。
+  （交接任务里写的"总请求 ≤ 15"做不到，是服务端页长上限决定的。）
+- **robots 不碰红线**：禁的是 `*/search/*` 和 `*/search?*`，这里走的是 `/api/v1/?operationName=…`，
+  路径里没有 search 段；也不走任何 `/nl/shop` 筛选 URL。另外 `Disallow: /en/`，只用 `/nl`。
+
+**商品字段**（`data.productList.products[]`）：
+
+| 要的东西 | 字段 |
+|---|---|
+| 名称 | `name`（含 ` \| ` 分隔符，要换成空格）；份量在 `price.supplementaryPriceLabel2`（"400 gr"） |
+| 品牌 | `manufacturerName`（覆盖率 100%） |
+| 货架单件价 | `price.value` |
+| 折后单件价 | `price.discountedPriceFormatted`（`"€3,19"`，**直接打折时才小于货架价**） |
+| 每公斤/每升价 | `price.supplementaryPriceLabel1`（`"9,98 €/kg"`，覆盖率 100%） |
+| 促销文案 | `potentialPromotions[0].description`（`simplePromotionMessage` / `title` 兜底） |
+| 有效期 | `potentialPromotions[0].endDate` / `startDate`，`"16/09/2026 21:59:00"` 是 **UTC**，21:59Z = 布鲁塞尔当天 23:59，所以日期部分直接就是最后一天 |
+| 分类 | `firstLevelCategory.name`（19 个顶层分类） |
+| 图片 | `images[]` 里 `format` 为 `small` / `respListGrid` 的，是相对路径，要拼 `https://www.delhaize.be` |
+| 商品页 | `url`，同样是相对路径 |
+| 商品号 | `code`（如 `F2023070400122920000`） |
+
+- **价格语义**：`price.value` 是**货架单件价**。直接打折（`-20%`）时 `discountedPriceFormatted` 是折后单价，
+  这时 `po` = 货架价、`pp` = 折后价；多件促销（`1+1 gratis`、`2de tegen -50%`）时它**等于货架价**，
+  这时 `po` 留空、`pp` = 单件价（和 Carrefour 一个语义，页面显示"单件价"）。
+  `po` 不能填成和 `pp` 一样的数 —— `normalize()` 里"两价相等就判 0%"那条会把折扣清零。
+  `wasPrice` 全库为 null，`showStrikethroughPrice` 只有 15 条为 true 且都另有促销，没用上。
+- **促销文案形态**（本周 1353 条的全部形态，`scrapers/delhaize.js` 的 `promoText()` 负责改写成
+  `effectiveDiscount()` 认识的写法）：
+
+| 接口原文 | 条数 | 改写成 |
+|---|---|---|
+| `1+1 gratis` / `2+1 gratis` / `2+2 gratis` | 712 | 原样（`simplePromotionMessage` 里有下划线写法 `1+1_gratis`，要还原成空格） |
+| `2de tegen -50%` / `2de tegen -70%` | 404 | 原样 |
+| `-25%` | 76 | 原样 |
+| `3 voor €5` | 46 | `3 voor 5€`（€ 必须挪到数字后面才吃得到 `mVoorX`） |
+| `-25% voor 3` | 34 | 原样 |
+| `- €3` | 34 | `-3€` |
+| `3=gratis levering` | 26 | **丢弃**，网购免运费不是商品折扣（AH 那边同样处理） |
+| `- €6 voor 2` | 9 | `-6€ voor 2` |
+| `€6` | 1 | 原样（算不出，退回价格比） |
+| 空（无促销） | 11 | 没有降价的直接丢弃 |
+
+- **品类**：`Zoete kruidenierswaren` / `Zoute kruidenierswaren`（甜/咸杂货）是大杂烩标签，
+  巧克力、薯片、意面、酱料全在里面；而且 `kruidenier`（杂货商）会被 `toCat()` 的 `kruid`（香料）
+  关键词撞上、`zoute` 会被 `zout`（盐）撞上，直接归成"调味酱料 / 粮油面食"。`scrapers/delhaize.js`
+  把这两个顶层名当作没有分类，交给 `toCatWithName()` 用商品名判断。**同一个假阳性 Colruyt 那边也有**
+  （`toCat('Kruidenierswaren/Droge voeding')` → 调味酱料），没动 `lib/categorize.js`，见第 8 节。
+- **不区分店型**：接口里没有 AD / Proxy / Shop&Go 字段，`deliveryType` 只有配送方式，`promotionThemes` 全空。
+  这批是全国统一的线上促销目录，鲁汶两家店（AD Brusselsestraat、Heverlee）都适用；
+  **也就是说"排除 Shop&Go 独有促销"这件事做不到，数据源根本不给店型**。
+- **Akamai 偶尔把某一页挂住不给响应**（不是 403，就是一直 pending）。代码里每页套了 90 秒硬超时 + 一次重试。
 
 ### 不要用的东西
 
@@ -340,9 +411,12 @@ Vercel MCP 在本机对团队项目的读取一律 404/403，用它查部署状�
 
 本机 curl 和无头 Chromium 对 `www.ah.be` 一律 403（Akamai "Access Denied"），根因是 Akamai 按 `headless` 判据拦截，改用有头浏览器（`headless:false`）就能拿到 200，详细方案见第 4 节。剩下唯一没验证的是 GitHub Actions 的 CI 环境（用 xvfb 起虚拟显示）能不能一样过关，见第 7 节第 1 步。
 
-### 6.3 Delhaize 未开始
+### 6.3 Delhaize 反爬（已解决）
 
-原调研结论保留（见第 4 节）：SAP Hybris 反爬网关，标准 OCC 路径全 404，全站 JS 渲染。建议放到最后做，或者这家继续用旧方案（LLM 读 promotiez.be）兜着。
+之前判成"SAP Hybris 前置反爬网关"，实测下来是 Akamai Bot Manager，和 AH 同一套，有头浏览器就能过，详见第 4 节。
+剩下两个没验证的点：CI 的 xvfb 环境下能不能过（和 AH 同一个未知数，见第 7 节第 1 步）；
+Akamai 偶尔会把某一页的 XHR 挂住不给响应（本地 1 小时内跑到第 4 趟时遇到过一次），代码里靠 90 秒超时 + 重试兜着，
+但没验证过这是不是"短时间重复抓被限速"——正常一周只跑一两次，大概率碰不到。
 
 ---
 
@@ -352,7 +426,7 @@ Vercel MCP 在本机对团队项目的读取一律 404/403，用它查部署状�
 2. ~~周六以后看一次 AH 是否带出下周数据。~~ 已确认：09-12（周六）抓到 132 组，含下周数据，见第 4 节 AH 小节。
 3. 用户对价（Carrefour Market 尤其）。
 4. 配 `ANTHROPIC_API_KEY` secret，让中文词表的增量翻译开始跑。
-5. 做 Delhaize。
+5. ~~做 Delhaize。~~ 已完成，见第 4 节。
 
 ---
 
@@ -378,6 +452,11 @@ Vercel MCP 在本机对团队项目的读取一律 404/403，用它查部署状�
 - **`DOUWE EGBERTS Dessert` 系列被分到饮料**：商品名里没有 `koffie` 字样，没被咖啡茶关键词命中。
 - **`PIEDBOEUF Pils` 和 `TYRRELLS S.salt&C.vin` 分类踩了假阳性**：前者因为名字里含 `boeuf` 被判成肉禽蛋，后者因为含 `vin` 被判成酒类，各 1 条。
 - **Colruyt 的 `9+3 gratis`/`12+6 gratis` 文案可能跟门店标签对不上**：这两条是照 `benefitPercentage`/`minLimit` 数据老实算出来的，但门店的促销标签可能写的是更小的比例，比如「3+1，最少买 12 件」。
+- **Delhaize 排不掉 Shop&Go 独有促销**：接口里根本没有店型字段（没有 AD / Proxy / Shop&Go 的区分），拿到的是全国统一的线上促销目录。鲁汶两家店（AD Brusselsestraat、Heverlee）适用，但"不要 Shop&Go"这条要求在数据层面无法执行。
+- **Delhaize 的促销几乎全是 `redemptionLevel: MEMBER`**（要 SuperPlus 卡才享受），页面上没有标出来。
+- **`toCat()` 把 `kruidenier`（杂货商）当 `kruid`（香料）、`zoute` 当 `zout`（盐）**：Delhaize 那边靠 scraper 里跳过这两个顶层名绕开了，但 `lib/categorize.js` 本身没改，Colruyt 的 `Kruidenierswaren/Droge voeding` 仍然会被判成「调味酱料」。
+- **Delhaize 38 条长期促销**（`endDate` 是 12/31）`val` 显示成「长期促销」，不是「还剩 N 天」；这些是常年多件优惠，不是本周传单。
+- **Delhaize 数据没跟门店或纸质传单核对过**：字段语义是从接口结构和促销文案推出来的，抽样对价还没做。
 
 ---
 
@@ -387,7 +466,7 @@ Vercel MCP 在本机对团队项目的读取一律 404/403，用它查部署状�
 |---|---|
 | Lidl | 禁 `offset=` / `sort=` / `q=` / 含 `id=` 的参数；`fetchsize` 服务端封顶 108，靠按 category facet 递归切分拉完 |
 | Carrefour | 禁 `?pmid=` 和 `/search?q=`；robots 末尾有兜底 `Disallow: /`。只走 `?p=N`，限速 1-2 秒 |
-| Delhaize | 禁 `*/search/*` 和 `*/search?*` |
+| Delhaize | 禁 `*/search/*`、`*/search?*`、`/en/`。走 `/api/v1/?operationName=ProductList`（路径里没有 search 段），页间 sleep 1600ms，一趟 29 个请求 |
 | ALDI | 禁 `/*?*filters`（不要走分类筛选 URL）、`/mds/`、`/bal/`、`/can/` |
 | Colruyt | `crawl-delay: 5`；官方 API 有主动反爬（别硬刚，走 bucket） |
 | AH | `api.ah.nl` 全站 Disallow；`www.ah.be/bonus` 没禁，但 Akamai 只放行有头浏览器（无头一律 403） |

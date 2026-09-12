@@ -16,7 +16,7 @@ npm test                # 跑单元测试
 
 然后浏览器打开 `public\index.html`。
 
-只想试一家：`node scripts/scrape.js <store>`，比如 `node scripts/scrape.js lidl`。可选的 store 有 lidl、colruyt、carrefour、aldi、ah。ah 会真的弹出一个浏览器窗口（Edge 或 Chrome），这是绕过 ah.be 反爬的必要条件，不是 bug。
+只想试一家：`node scripts/scrape.js <store>`，比如 `node scripts/scrape.js lidl`。可选的 store 有 lidl、colruyt、carrefour、aldi、ah、delhaize。ah 和 delhaize 会真的弹出一个浏览器窗口（Edge 或 Chrome），这是绕过两家 Akamai 反爬的必要条件，不是 bug。
 
 ## 数据来源
 
@@ -27,7 +27,7 @@ npm test                # 跑单元测试
 | Carrefour Market / Express | 各自店型的促销页服务端渲染，Playwright 取页 + cheerio 解析 | 可用 |
 | ALDI | 官网 aanbiedingen 页里嵌的 `__NEXT_DATA__`，裸 fetch 即可 | 可用 |
 | Albert Heijn | ah.be 挂 Akamai，无头请求会 403，改用有头浏览器绕过 | 可用 |
-| Delhaize | 全站 JS 渲染加反爬网关，还没做 | 待做 |
+| Delhaize | 促销页的 GraphQL 接口（Apollo persisted query），同样靠有头浏览器过 Akamai | 可用 |
 
 ## 每周自动更新
 

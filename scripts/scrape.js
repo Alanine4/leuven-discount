@@ -4,10 +4,11 @@ import lidl from '../scrapers/lidl.js';
 import colruyt from '../scrapers/colruyt.js';
 import carrefour from '../scrapers/carrefour.js';
 import ah from '../scrapers/ah.js';
+import delhaize from '../scrapers/delhaize.js';
 import aldi from '../scrapers/aldi.js';
 
-// ah 放最后：它要开有头浏览器（CI 里靠 xvfb），别挡着前面几家
-const SOURCES = { lidl, colruyt, carrefour, aldi, ah };
+// ah / delhaize 放最后：这两家要开有头浏览器（CI 里靠 xvfb），别挡着前面几家
+const SOURCES = { lidl, colruyt, carrefour, aldi, ah, delhaize };
 const only = process.argv[2];                     // node scripts/scrape.js lidl → 只跑一家
 const pick = only ? { [only]: SOURCES[only] } : SOURCES;
 
