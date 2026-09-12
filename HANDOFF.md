@@ -1,7 +1,7 @@
 # 鲁汶折扣雷达：交接文档
 
 > 给接手的 Claude Code 看的。项目目录 `C:\Projects\Leuven_discount`。
-> 最后更新：2026-09-10
+> 最后更新：2026-09-12
 
 ---
 
@@ -53,23 +53,27 @@
 | 部分 | 状态 | 说明 |
 |---|---|---|
 | 仓库骨架 | ✅ 完成 | package.json / 目录结构 / .gitignore / vercel.json |
-| 折扣力度算法 | ✅ 完成 | `lib/normalize.js`，68 个单测全绿（`npm test`） |
+| 折扣力度算法 | ✅ 完成 | `lib/normalize.js`，`npm test` 95 个用例全绿 |
 | 品类归并 | ✅ 完成 | `lib/categorize.js`，荷/法/英关键词 → 19 个中文品类 |
-| Lidl 抓取 | ✅ 已跑通 | 本周 272 条，去重后 268 条 |
-| Colruyt 抓取 | ✅ 已跑通 | 本周约 1368 条 |
-| Carrefour Market 抓取 | ✅ 已跑通 | 本周约 954 条，见第 4 节 |
-| Carrefour Express 抓取 | ✅ 已跑通 | 本周约 92 条，覆盖率比 Market 低，见第 4 节 |
-| ALDI 抓取 | ✅ 已跑通 | 本周 379 条，去重后 378 条 |
-| AH 抓取 | ✅ 已跑通 | 本周约 68 条，靠有头浏览器绕过 Akamai，见第 4 节；CI 里的 xvfb 方案还没实测过，见第 7 节 |
+| Lidl 抓取 | ✅ 已跑通 | 本周（09-12 抓）220 条 |
+| Colruyt 抓取 | ✅ 已跑通 | 本周（09-12 抓）1275 条 |
+| Carrefour Market 抓取 | ✅ 已跑通 | 本周（09-12 抓）965 条，见第 4 节 |
+| Carrefour Express 抓取 | ✅ 已跑通 | 本周（09-12 抓）91 条，覆盖率比 Market 低，见第 4 节 |
+| ALDI 抓取 | ✅ 已跑通 | 本周（09-12 抓）326 条 |
+| AH 抓取 | ✅ 已跑通 | 本周（09-12 抓）124 条，周六起接口已同时带出下周（见第 7 节）；靠有头浏览器绕过 Akamai，见第 4 节；CI 里的 xvfb 方案还没实测过，见第 7 节 |
 | Delhaize 抓取 | ⛔ 未开始 | 见第 4 节 |
-| 合并/出页面 | ✅ 完成 | `scripts/build.js`，六家合计约 3128 条 |
+| 合并/出页面 | ✅ 完成 | `scripts/build.js`，六家本周（09-12 抓）合计 3001 条 |
 | 中文名词表 | ✅ 已冷启动 | `lib/glossary.json` 现有 3667 条（人工分批翻译写入），本周约 95% 商品有中文名；新品的增量翻译仍靠 `scripts/translate.js`，还没配 `ANTHROPIC_API_KEY` |
 | 网页模板 | ✅ 完成 | `web/template.html`，搜索/筛选/排序都做好了 |
-| GitHub Actions | ⚠️ 已推上去，AH 那部分还没在 CI 里跑过 | 已加 `npx playwright install --with-deps chromium` 和 `xvfb`，抓取步骤用 `xvfb-run` 包一层；周一、周三定时触发，也可以在 Actions 页手动 workflow_dispatch |
+| GitHub Actions | ⚠️ 已推上去，AH 那部分还没在 CI 里跑过 | 已加 `npx playwright install --with-deps chromium` 和 `xvfb`，抓取步骤用 `xvfb-run` 包一层；定时改成周一到周四每天两次（`cron: '0 5 * * 1-4'` 和 `'0 14 * * 1-4'`），也可以在 Actions 页手动 workflow_dispatch |
 | 推到 GitHub | ✅ 完成 | https://github.com/Alanine4/leuven-discount ，公开仓库，分支 `main` |
 | Vercel 部署 | ✅ 完成 | https://leuven-zhekou.vercel.app ，项目名 `leuven-zhekou`（团队 Yichuan's projects），推送即自动部署 |
 
-**一句话总结当前位置**：六家（Lidl、Colruyt、ALDI、Carrefour Market、Carrefour Express、Albert Heijn）端到端跑通了，`npm run refresh` 一次拉完约 3128 条，`npm test` 68 个用例全绿。浏览器验收也做过：本地起 `python -m http.server 8765 -d public`，用 Playwright 脚本（`data/debug/check-page.mjs`、`check-search.mjs`，已 gitignore）搜「意面」42 条全是意面没有牙膏，「鸡肉」不再混进猫粮狗粮，「三文鱼」只出 zalm，来源链接全是官方域名，没有 JS 报错，手机视口下布局正常。AH 靠有头浏览器绕过了 Akamai（见第 4 节），但这个方案还没在 GitHub Actions 的 CI 环境里实测过；Delhaize 还没动。仓库在 GitHub（Alanine4/leuven-discount），线上链接 https://leuven-zhekou.vercel.app ，推送自动部署。下一步见第 7 节，第一件事是手动触发一次 Actions 确认 AH 在 CI 里能不能过 Akamai。
+**一句话总结当前位置**：六家（Lidl、Colruyt、ALDI、Carrefour Market、Carrefour Express、Albert Heijn）端到端跑通了，`npm run refresh` 本周（09-12 抓）一次拉完 3001 条，`npm test` 95 个用例全绿。浏览器验收也做过：本地起 `python -m http.server 8765 -d public`，用 Playwright 脚本（`data/debug/check-page.mjs`、`check-search.mjs`，已 gitignore）搜「意面」42 条全是意面没有牙膏，「鸡肉」不再混进猫粮狗粮，「三文鱼」只出 zalm，来源链接全是官方域名，没有 JS 报错，手机视口下布局正常。AH 靠有头浏览器绕过了 Akamai（见第 4 节），但这个方案还没在 GitHub Actions 的 CI 环境里实测过；Delhaize 还没动。仓库在 GitHub（Alanine4/leuven-discount），线上链接 https://leuven-zhekou.vercel.app ，推送自动部署。下一步见第 7 节，第一件事是手动触发一次 Actions 确认 AH 在 CI 里能不能过 Akamai。
+
+### 审计方法
+
+09-12 这次更新做了一轮数据审计：先每家抽 5 条跟官网对，再挑几家加大样本做全量字段交叉比对（AH 68 条、ALDI 378 条、Colruyt 1368 条、Lidl 105 条）。结果是 AH 全部一致，ALDI 除了「N voor X」这一类促销文案外一致，Carrefour 抽样也一致；真正有问题的地方集中在价格字段的语义理解上，不是抓取或解析错误，具体是什么问题、怎么改的写在第 5.1 节。审计脚本放在 `data/debug/`（已 gitignore）。
 
 ---
 
@@ -173,7 +177,7 @@ https://apip.colruyt.be/gateway/ictmgmt.emarkecom.cgproductretrsvc.v2/v2/v2/nl/p
 - dump 顶层是数组，15586 条。
 - 促销详情文件名用 `promotion[].techPromoId`（如 `102715COLR`），不是 `promotion[].promotionId`（纯数字）。
 - 日期两种格式混用：促销详情的 `activeEndDate` 是 ISO，商品自带的 `publicationEndDate` 是 `DD-MM-YYYY`。
-- 促销详情 `benefit` 目前只见过 `{benefitPercentage, minLimit, limitUnit}` 一种形态。`promotionType` 3 是普通折扣，4 是阶梯折扣（多档 benefit，目前只取第一档，偏保守），`promotionType` 为 0 时 `benefitPercentage` 恒为 0（拼不出文案，本周 89 条）。
+- 促销详情 `benefit` 目前只见过 `{benefitPercentage, minLimit, limitUnit}` 一种形态。`promotionType` 3 是普通折扣，4 是阶梯折扣（多档 benefit，2026-09-12 起改成取比例最大的一档，此前是只取第一档，偏保守；`benefitPercentage`/`minLimit` 的语义和折扣力度算法见第 5.1 节），`promotionType` 为 0 时 `benefitPercentage` 恒为 0（拼不出文案，本周 89 条）。
 - 本周约 209 个唯一促销 id，上限设的 400。
 - Colruyt 价格是按门店浮动的（官方 FAQ 说每家店对标本地竞争对手定价），bucket 用的是作者自己那个 placeId，不是鲁汶。**目前接受这个误差。**
 
@@ -264,6 +268,16 @@ https://www.carrefour.be/nl/al-onze-express-promoties?p=N  # 本周 92 条，3 �
 
 配套：`mb=1`（多件优惠）的商品**页面上不显示划线原价**，改显示"整组价"，因为那个数字不是可比的"原价"。
 
+### 5.1.1 各家价格字段的语义（2026-09-12 审计后补）
+
+这轮审计发现，几家超市的 `po`/`pp` 和促销字段代表的不是同一种"价"，之前对 Colruyt 的理解是错的，已经改。
+
+- **Colruyt**：bucket 促销详情 `benefit[{benefitPercentage, minLimit}]` 里，`benefitPercentage` 是整笔促销的减免比例，`minLimit` 是达到这个折扣需要买的件数（门槛件数），不是"第 N 件打 X 折"里的那个 N。证据：`minLimit:1` 的记录对应直接打折 `-25%`；`benefitPercentage` 约 33.34% 且 `minLimit` 为 3 的记录有 251 条，对应买三付二；阶梯促销（`promotionType` 为 4，有多档 benefit）按这个读法算出来的折扣是逐档递增的，逻辑自洽。之前的算法把 `benefitPercentage` 当成"第 N 件打 X 折"里的 X，再除以 `minLimit` 换算成整体折扣，结果把这 1257 条记录的折扣力度压低到了 2% 到 13%，明显偏低，是个理解上的错误，不是解析漏了什么。现在已经改成直接读 `pct = benefitPercentage`，不再除以 `minLimit`。促销文案由 `scrapers/colruyt.js` 里的 `benefitText()` 生成：`minLimit<=1` 时写成 `-X%`；如果这个比例正好等于 `m/(n+m)` 并且 `n+m` 等于 `minLimit`，就写成 `n+m gratis`；其余情况写成 `-X% bij N stuks`；阶梯促销取比例最大的一档。`lib/normalize.js` 里 `Nde aan -X%` 这条规则没有改，Carrefour 的 `2de aan -70%` 在官网核实过确实是第二件打折，这个理解本来就是对的，不受这次修复影响。**这个 Colruyt 语义判断是从数据结构反推出来的，目前还没拿一条实物门店标签核对过**，用户下次去 Colruyt 时留意一下类似 `2+1 gratis` 的标签跟页面显示是否一致就能确认。
+- **Colruyt 的 `pp` 是货架价**：遇到多件促销时，`pp` 是单件的价格（页面上标"单件价"）；遇到直接打折时，当天 dump 里的 `basicPrice` 已经是折后价格。所以现在把定时抓取多加了一次 14:00 UTC：bucket 当天的 dump 大概要到 12:46 UTC 才落地，早上 5 点那次抓到的其实是前一天的数据。
+- **Carrefour**：`pp` 是单件价（页面上标的也是"单件价"），但 `-2€` 这种直接减价的基准价是折前还是折后，目前还没有核实。
+- **AH / ALDI**：`po`/`pp` 是同一份量的整组价（页面标"整组价"）。ALDI 的"`N voor X euro`"这种文案（比如"2 voor 2 euro"）里，`strikePrice` 是这 N 件的总价，不是单件价；`scrapers/aldi.js` 现在改成按单件的挂牌价来算折扣（比如单价 2.58 欧、2 件卖 2 欧，算出来是 61% 的折扣）。
+- **Lidl**：促销截止日期现在优先用 `price.endDate`（这是促销价结束的日期，ISO 格式 `2026-09-15T22:00Z`，换算成布鲁塞尔时间正好是 09-16 零点；直接按 UTC 切片读出的 `09-15` 就是最后一天还能买的日期，读法是对的）。之前用的 `storeEndDate` 是商品下架日，会比真实的促销截止日晚 7 到 14 天。
+
 ### 5.2 中文搜索：查询扩展，不是逐条翻译
 
 **不需要给每个商品都翻译中文名。** 页面里（`web/template.html` 的 `SYN` 常量）有一份中文→荷/法/英同义词表，搜索时把「意面」扩展成 `pasta / spaghetti / penne / fusilli / tagliatelle / lasagne / macaroni` 再去匹配商品原名。
@@ -276,7 +290,9 @@ https://www.carrefour.be/nl/al-onze-express-promoties?p=N  # 本周 92 条，3 �
 
 ### 5.3 品类归并：toCat() 的匹配规则
 
-关键词 trim 后如果长度小于等于 4 个字母，按词首或词尾命中都算（荷兰语复合词的中心词往往在词尾，`kokosmelk` / `abdijkaas` 要能命中；但 `shampoo` 里的 `ham` 不能算命中）。`pasta`、`eau`、`ijs` 这三个关键词单独处理，只认词首匹配，因为 `tandpasta`（牙膏）、`bureau`（办公桌）、`knalprijs`（爆炸价）都是靠词尾巧合撞上的假阳性。长度大于等于 5 个字母的关键词仍然走子串匹配。`roomijs`（归到零食甜点）和 `fruitsap`（归到饮料）这两个走 `OVERRIDES` 特例表，不走通用规则。带尾部空格的老关键词（比如 `'ei '`）保留原来的纯词首匹配方式。已加一个 `PRIORITY` 子串规则表，在主循环前先判断（如 `zuivel` → 乳制品奶酪、`maaltijd` → 冷冻速食），修了 AH 分类名 `Zuivel, eieren` 被误判成肉禽蛋、`Maaltijden, salades` 被误判成果蔬的问题。
+关键词 trim 后如果长度小于等于 4 个字母，按词首或词尾命中都算（荷兰语复合词的中心词往往在词尾，`kokosmelk` / `abdijkaas` 要能命中；但 `shampoo` 里的 `ham` 不能算命中）。`pasta`、`eau`、`ijs` 这三个关键词单独处理，只认词首匹配，因为 `tandpasta`（牙膏）、`bureau`（办公桌）、`knalprijs`（爆炸价）都是靠词尾巧合撞上的假阳性。长度大于等于 5 个字母的关键词仍然走子串匹配。`roomijs`（归到零食甜点）和 `fruitsap`（归到饮料）这两个走 `OVERRIDES` 特例表，不走通用规则。带尾部空格的老关键词（比如 `'ei '`）保留原来的纯词首匹配方式。已加一个 `PRIORITY` 子串规则表，在主循环前先判断（如 `zuivel` → 乳制品奶酪、`maaltijd` → 冷冻速食），修了 AH 分类名 `Zuivel, eieren` 被误判成肉禽蛋、`Maaltijden, salades` 被误判成果蔬的问题。`PRIORITY` 现在还加了 `sauzen` → 调味酱料、酒类（`bier`/`wijn`/`champagne`/`cava`/`aperitieven`/`digestie` 等）、咖啡茶（`koffie`/`nespresso`/`thee` 等）。`aperitief` 改成复数形式 `aperitieven`，因为家乐福的顶层分类 "chips en aperitief" 其实是零食区，用单数形式会连带把这个顶层分类误判成酒类。
+
+新增了 `toCatWithName(顶层分类, 商品名)`：顶层分类归到"饮料"时，只接受细分结果是酒类或咖啡茶的判断（其余细分结果不采纳，仍按饮料处理），带瓶装容量的 `tea`/`thee` 判回饮料；顶层分类归到"其他"时，用商品名做全量兜底匹配。Carrefour 和 Colruyt 用的是这个函数。
 
 ### 5.4 去重
 
@@ -289,6 +305,10 @@ https://www.carrefour.be/nl/al-onze-express-promoties?p=N  # 本周 92 条，3 �
 19 个品类各配了一个 16px 单色线性 SVG 图标（`CAT_ICON`），放在卡片元信息行品类名前面，风格和搜索/箭头图标一致（用户要的是"线条风格不花哨的 emoji"，实现成线性 SVG）。
 
 店名映射按 `store` 这个英文 key 走（`STORE_LABEL`），筛选值用的也是 `store`，`meta.stores` 也按 `store` 计数。`STORE_LABEL` 已经加了 `Carrefour Market`/`Carrefour Express` 两个 key，店铺标签的显示文案用户明确说保持现状不改。同义词表查找时精确 key 优先命中，没有精确 key 才做包含式扩展。搜食品类词时会排除 `cat === '宠物'` 的商品，但如果查询本身包含猫、狗、宠这些字，或者扩展出了 kat / hond 这类词，或者用户直接选了宠物品类做筛选，就不排除。来源链接（`SRC`）指向官方商品页：Colruyt 改成了 `https://www.colruyt.be/nl/acties`，Lidl 改成了 `https://www.lidl.be/l/nl-BE/folder`，Carrefour Market/Express 各指自己的促销页，ALDI 是 aanbiedingen 页链接。页面顶部的统计条文案是「N 件本周促销 / N 件标了折扣 / N 件五折起 / 更新于...」。商品名可以点击跳到官网。
+
+有效期是按用户打开页面的那一刻实时算的（拿 `ends` 跟当天日期比），已经过期的默认隐藏，要勾"显示已结束"才能看到；页面顶部的统计条只数未过期的商品；页脚写明这批数据的抓取日期和已过期的条数。多件促销的标签区分了两种情况：`mb` 为真且有 `po` 时写"整组价"，`mb` 为真但没有 `po` 时写"单件价"。
+
+`scripts/build.js`：`po`、`pp` 两个字段都是空的记录会被直接丢弃（本周有 129 条属于这种情况）；`meta.updated` 现在取的是 `data/raw/_report.json` 里记录的抓取时间，不是脚本本次构建运行的时间。
 
 ---
 
@@ -311,7 +331,7 @@ Vercel MCP 在本机对团队项目的读取一律 404/403，用它查部署状�
 ## 7. 下一步做什么（按顺序）
 
 1. 手动触发一次 Actions 确认 AH 在 CI 的 xvfb 下能过 Akamai（这是当前最大的未知）。
-2. 周六以后看一次 AH 是否带出下周数据。
+2. ~~周六以后看一次 AH 是否带出下周数据。~~ 已确认：09-12（周六）抓到 132 组，含下周数据，见第 4 节 AH 小节。
 3. 用户对价（Carrefour Market 尤其）。
 4. 配 `ANTHROPIC_API_KEY` secret，让中文词表的增量翻译开始跑。
 5. 做 Delhaize。
@@ -320,7 +340,6 @@ Vercel MCP 在本机对团队项目的读取一律 404/403，用它查部署状�
 
 ## 8. Backlog / 还没做的
 
-- **Colruyt 阶梯折扣**：`promotionType` 为 4 的多档 benefit 目前只取第一档，偏保守，会低估部分折扣力度。
 - **ALDI 无品牌字段**：需要额外 379 次详情页请求才能拿到，没做。「下周起」这套逻辑只在周四抓的数据上验证过。
 - **品类「其他」占比偏高**：3689 条里 405 条（11%）落进「其他」，主要是 Colruyt 的 "Niet-voeding" / "Kruidenierswaren/Droge voeding" 泛类目，和 ALDI 营销版块下没有分类字段的商品。
 - **咖啡茶品类样本极少**：只有 2 条，怀疑是 Carrefour 的咖啡分类名没被关键词表命中，还没查。
@@ -335,6 +354,13 @@ Vercel MCP 在本机对团队项目的读取一律 404/403，用它查部署状�
 - **词表品牌译法不统一**：有的用中文商标名（如「克特多金象」），有的保留原文，各批翻译没对齐。
 - **家乐福 Express 折扣/有效期覆盖率低**：数据源本身的限制，不是解析问题。
 - **Carrefour 原名截断**：有些商品名只剩后半段（如「met Parmigiano Reggiano 250 g」），要看详情页才能补全。
+- **Colruyt 折扣语义未在门店标签核对**：第 5.1.1 节的 `benefitPercentage`/`minLimit` 读法是从数据结构反推出来的，还没拿一条实物门店促销标签核对过。
+- **Carrefour `-N€` 直减的基准价未验证**：折前还是折后没查清楚。
+- **Colruyt 1275 条 `url` 全空**：bucket 数据里有 `productId` 和 `seoBrand`，理论上能拼出商品详情页链接，但拼链接用的 slug 规则还没验证，拼错了会 404，所以暂时没做。
+- **ALDI 13 条促销文案只写 `2 voor`/`3 voor` 不带价格**：这些仍然走旧的启发式算法，没有核对过是否算对。
+- **`DOUWE EGBERTS Dessert` 系列被分到饮料**：商品名里没有 `koffie` 字样，没被咖啡茶关键词命中。
+- **`PIEDBOEUF Pils` 和 `TYRRELLS S.salt&C.vin` 分类踩了假阳性**：前者因为名字里含 `boeuf` 被判成肉禽蛋，后者因为含 `vin` 被判成酒类，各 1 条。
+- **Colruyt 的 `9+3 gratis`/`12+6 gratis` 文案可能跟门店标签对不上**：这两条是照 `benefitPercentage`/`minLimit` 数据老实算出来的，但门店的促销标签可能写的是更小的比例，比如「3+1，最少买 12 件」。
 
 ---
 
