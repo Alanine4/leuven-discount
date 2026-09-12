@@ -1,10 +1,97 @@
 // Colruyt：官方 API 有 Akamai 反爬（要 key + cookie + 代理池），不值得硬碰。
 // 改用 BelgianNoise 每日 dump 的公开 GCS bucket，免鉴权、字段是官方接口原样透传。
-import { normalize, get, sleep } from '../lib/normalize.js';
+import { normalize, get, sleep, UA } from '../lib/normalize.js';
 import { toCatWithName } from '../lib/categorize.js';
 
 const BUCKET = 'https://storage.googleapis.com/colruyt-products';
 const PREFIX = 'colruyt-products';
+
+// bucket 的价格是 dump 作者那家店的。Colruyt 每家店按本地竞争对手定价，
+// 所以促销商品的价格再用官方接口按鲁汶店（placeId 684，Lombaardenstraat 2）覆盖一遍。
+// Heverlee 店是 605，这里不用。
+const LEUVEN_PLACE_ID = 684;
+const API = 'https://apip.colruyt.be/gateway/ictmgmt.emarkecom.cgproductretrsvc.v2/v2/v2/nl/products';
+// key 写在商品页 HTML 的 data-endpoints 里，可能随发版轮换，所以每次现读，读不到才用这个
+const API_KEY_FALLBACK = 'a8ylmv13-b285-4788-9e14-0f79b7ed2411';
+const KEY_PAGE = 'https://www.colruyt.be/nl/producten/26327';
+
+/** 从商品页 HTML 的 data-endpoints 属性（HTML 转义过的 JSON）里取 X-CG-APIKey */
+export async function fetchApiKey() {
+  try {
+    const html = await get(KEY_PAGE, { retries: 1 });
+    const attr = /data-endpoints="([^"]*)"/i.exec(html);
+    if (attr) {
+      const json = attr[1].replace(/&#34;/g, '"').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+      const m = /X-CG-APIKey:\s*([\w-]+)/i.exec(json);
+      if (m) return m[1];
+    }
+    console.warn('  ⚠ 商品页里没找到 X-CG-APIKey，用硬编码的那个');
+  } catch (e) {
+    console.warn(`  ⚠ 取 API key 失败（${e.message}），用硬编码的那个`);
+  }
+  return API_KEY_FALLBACK;
+}
+
+/** 默认的批量取数：20 秒超时，非 200 抛错（交给调用方按批降级） */
+async function apiFetch(url, apiKey) {
+  const res = await fetch(url, {
+    signal: AbortSignal.timeout(20000),
+    headers: {
+      'User-Agent': UA,
+      Accept: 'application/json',
+      'Accept-Language': 'nl-BE',
+      Origin: 'https://www.colruyt.be',
+      Referer: 'https://www.colruyt.be/',
+      'X-CG-APIKey': apiKey,
+    },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+/**
+ * 把 normalize 之前的记录里的 pricePromo / unitPrice 换成鲁汶店价（就地改，也返回 rows）。
+ * 批量接口：GET {API}?placeId=684&clientCode=clp&size=250&productIds=a,b,c（实测 200，
+ * 顶层是 {productsFound, productsReturned, products:[...]}），每批 250、间隔 5 秒（robots crawl-delay）。
+ * 任何一批失败只 warn 并保留 bucket 价，不抛错。
+ */
+export async function overlayStorePrices(rows, {
+  placeId = LEUVEN_PLACE_ID, fetchJson = null, batchSize = 250, delayMs = 5000,
+} = {}) {
+  const targets = rows.filter((r) => r.id);
+  if (!targets.length) return rows;
+  let call = fetchJson;
+  if (!call) {
+    const apiKey = await fetchApiKey();
+    call = (url) => apiFetch(url, apiKey);
+  }
+
+  let matched = 0, changed = 0;
+  for (let i = 0; i < targets.length; i += batchSize) {
+    const batch = targets.slice(i, i + batchSize);
+    if (i) await sleep(delayMs);
+    const url = `${API}?placeId=${placeId}&clientCode=clp&size=${batchSize}`
+      + `&productIds=${batch.map((r) => r.id).join(',')}`;
+    let data;
+    try { data = await call(url); }
+    catch (e) {
+      console.warn(`  ⚠ 鲁汶店价第 ${Math.floor(i / batchSize) + 1} 批取不到（${e.message}），这批保留 bucket 价`);
+      continue;
+    }
+    const list = Array.isArray(data) ? data : (data?.products || []);
+    const priceById = new Map(list.filter((p) => p?.productId != null).map((p) => [String(p.productId), p.price || {}]));
+    for (const r of batch) {
+      const pr = priceById.get(String(r.id));
+      if (!pr || pr.basicPrice == null) continue;
+      matched++;
+      if (r.pricePromo == null || Math.abs(r.pricePromo - pr.basicPrice) >= 0.005) changed++;
+      r.pricePromo = pr.basicPrice;
+      if (pr.measurementUnitPrice) r.unitPrice = `${pr.measurementUnitPrice}/${pr.measurementUnit || ''}`;
+    }
+  }
+  console.log(`  鲁汶店价覆盖 ${matched}/${rows.length} 条，改动 ${changed} 条`);
+  return rows;
+}
 
 /** bucket 里的 key 带目录前缀（如 colruyt-products/2026-09-09-12-50-03.json），
  *  列全部目录会被截断到 2000 条老数据，所以按"当月"前缀查，取时间戳最大的那个 dump；
@@ -67,13 +154,13 @@ export default async function scrapeColruyt({ withPromoDetail = true } = {}) {
     }
   }
 
-  return onPromo.map((p) => {
+  const raw = onPromo.map((p) => {
     const pr = p.price || {};
     const promo = p.promotion?.[0] || {};
     const det = detail.get(promo.techPromoId) || promo;
     const end = toIsoDate(det.activeEndDate) || toIsoDate(promo.publicationEndDate);
     const left = end ? Math.ceil((Date.parse(end) - Date.now()) / 864e5) : null;
-    return normalize({
+    return {
       store: 'Colruyt', storeZh: '大仓库',
       name: p.LongName || p.name || p.ShortName,
       brand: p.brand || '',
@@ -89,6 +176,12 @@ export default async function scrapeColruyt({ withPromoDetail = true } = {}) {
       // 商品页用 commercialArticleNumber，不是 productId（实测 /nl/producten/{commercialArticleNumber} 200，productId 410）
       url: p.commercialArticleNumber ? `https://www.colruyt.be/nl/producten/${p.commercialArticleNumber}` : '',
       id: String(p.productId || p.commercialArticleNumber || ''),
-    });
+    };
   });
+
+  // 折扣力度要按鲁汶店价算，所以覆盖必须在 normalize 之前
+  try { await overlayStorePrices(raw, {}); }
+  catch (e) { console.warn(`  ⚠ 鲁汶店价覆盖整体失败（${e.message}），全部保留 bucket 价`); }
+
+  return raw.map(normalize);
 }

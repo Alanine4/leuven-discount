@@ -179,7 +179,25 @@ https://apip.colruyt.be/gateway/ictmgmt.emarkecom.cgproductretrsvc.v2/v2/v2/nl/p
 - 日期两种格式混用：促销详情的 `activeEndDate` 是 ISO，商品自带的 `publicationEndDate` 是 `DD-MM-YYYY`。
 - 促销详情 `benefit` 目前只见过 `{benefitPercentage, minLimit, limitUnit}` 一种形态。`promotionType` 3 是普通折扣，4 是阶梯折扣（多档 benefit，2026-09-12 起改成取比例最大的一档，此前是只取第一档，偏保守；`benefitPercentage`/`minLimit` 的语义和折扣力度算法见第 5.1 节），`promotionType` 为 0 时 `benefitPercentage` 恒为 0（拼不出文案，本周 89 条）。
 - 本周约 209 个唯一促销 id，上限设的 400。
-- Colruyt 价格是按门店浮动的（官方 FAQ 说每家店对标本地竞争对手定价），bucket 用的是作者自己那个 placeId，不是鲁汶。**目前接受这个误差。**
+- Colruyt 价格是按门店浮动的（官方 FAQ 说每家店对标本地竞争对手定价），bucket 用的是 dump 作者那个 placeId，不是鲁汶。**现在在 normalize 之前用官方接口按鲁汶店价覆盖一遍**（折扣力度要用覆盖后的价格算），见下。
+
+#### 鲁汶店价覆盖（`overlayStorePrices()`，2026-09-12 加）
+
+```
+GET https://apip.colruyt.be/gateway/ictmgmt.emarkecom.cgproductretrsvc.v2/v2/v2/nl/products
+    ?placeId=684&clientCode=clp&size=250&productIds=13240,1288921,...
+Header: X-CG-APIKey: <key>；再带真实 Chrome UA、Accept: application/json、
+        Accept-Language: nl-BE、Origin: https://www.colruyt.be、Referer: https://www.colruyt.be/
+```
+
+- **门店**：鲁汶 Lombaardenstraat 2 是 placeId **684**（用这个）；Heverlee Groenveldstraat 71 是 **605**。
+- **匿名可用**，不用 cookie、不用无头浏览器，只要那个 header。key 写在商品页 HTML 的 `<div id="endpoints" data-endpoints="...">` 里（`PRODUCT_OVERVIEW` 条目的 `headers: ["X-CG-APIKey: ..."]`），属性值是 HTML 转义过的 JSON，**实体是 `&#34;` 不是 `&quot;`**，两种都先还原再正则。`fetchApiKey()` 每次从 `https://www.colruyt.be/nl/producten/26327` 现读，读不到回落硬编码 `a8ylmv13-b285-4788-9e14-0f79b7ed2411`（key 可能随发版轮换）。
+- **批量参数两种都实测通**（各打 1 次，5 个 id，都是 200，5/5 返回）：`productIds=`（按 productId，bucket 里的 `productId`，就是 schema 里的 `id`）和 `commercialArtnos=`（按商品页那个号）。代码用 `productIds`。顶层结构是 `{productsFound, productsReturned, productsAvailable, products:[...], facets}`，**不是裸数组**（代码两种都认）。
+- **每批 250 个 id**（250 个 id 的 URL 约 1.9 KB，实测 `productsFound=250 / productsReturned=250`，没有服务端截断），批与批之间 sleep 5 秒（robots `crawl-delay: 5`）。本周 1384 条促销 = **每次抓取 6 个 apip 请求**。
+- **只覆盖 `price.basicPrice` 和 `measurementUnitPrice`**（促销信息全国统一，bucket 和接口逐字节相同，只有价格按店浮动）。
+- **降级策略**：任何一批非 200 / 超时（20 秒）/ 解析失败，只打 warn 并保留这批的 bucket 价，不抛错；整体失败也照样出数。`fetchApiKey()` 失败同理。
+- **本周实测结果**：`鲁汶店价覆盖 1049/1384 条，改动 11 条`。没覆盖到的 335 条是**鲁汶店不卖**（接口返回了这个商品但 `price` 里没有 `basicPrice`，同一批的 `productsAvailable` 也对得上：第一批 250 个里 235 个可售），这些保留 bucket 价。改动的 11 条**全是 bucket 里 `basicPrice` 为 0（等于没价）、接口给出了真实价**的商品（如 `BEAUX-PRÉS cremeux 150g` 0 → 4.49），这些以前会被 `scripts/build.js` 当空价丢掉。其余 1038 条覆盖后价格和 bucket 一模一样 —— 说明**促销商品的价格实际上是全国统一的**，门店浮动主要发生在非促销商品上。抽样核对：`ACTIVIA yoghurt vanillesmaak 4x125g`（productId 13240）鲁汶店 2.09，和门店实测一致。
+- schema 没动（没加"价格来自哪个店"这种字段），哪条被覆盖过只在这份文档里说明。
 
 ### Carrefour（已跑通，拆成 Market / Express 两个 store）
 
@@ -344,7 +362,6 @@ Vercel MCP 在本机对团队项目的读取一律 404/403，用它查部署状�
 - **品类「其他」占比偏高**：3689 条里 405 条（11%）落进「其他」，主要是 Colruyt 的 "Niet-voeding" / "Kruidenierswaren/Droge voeding" 泛类目，和 ALDI 营销版块下没有分类字段的商品。
 - **咖啡茶品类样本极少**：只有 2 条，怀疑是 Carrefour 的咖啡分类名没被关键词表命中，还没查。
 - **单店模式会覆盖 report**：`node scripts/scrape.js lidl` 这种单店跑法会把 `data/raw/_report.json` 覆盖成只剩这一家的记录，CI 是全量跑不受影响，但本地单独调试某一家时别把这个当整体状态判断。
-- **Colruyt 鲁汶门店价**：现在用的是 bucket 里别人那个 placeId 的价格。
 - **价格历史对比**：`data/history/` 每周一个快照，天然有数据了，可以做「这周是不是真便宜、比上个月的价格如何」这类判断，用户提过想要。
 - **中文词表积累**：`lib/glossary.json` 现有 3667 条（人工分批写入），每周新商品仍要靠 `scripts/translate.js` 增量翻译，配了 `ANTHROPIC_API_KEY`（见第 7 节第 4 步）之后才会自动跑。
 - **旧方案退役**：新链接稳定后，把那个 Claude 定时任务（`trig_01AtinoEkmHgD75MjtWmc7So`）停掉。
