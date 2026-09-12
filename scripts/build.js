@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import { dedupe } from '../lib/normalize.js';
 
 const glossary = JSON.parse(fs.readFileSync('lib/glossary.json', 'utf8'));
+const stores = JSON.parse(fs.readFileSync('lib/stores.json', 'utf8'));
 const raw = fs.readdirSync('data/raw').filter((f) => f.endsWith('.json') && !f.startsWith('_'));
 let items = raw.flatMap((f) => JSON.parse(fs.readFileSync(`data/raw/${f}`, 'utf8')));
 
@@ -36,6 +37,7 @@ const meta = {
   stores: tally('store'),
   cats: tally('cat'),
   with_pct: items.filter((i) => i.pct).length,
+  shops: stores,
 };
 const payload = { meta, items };
 

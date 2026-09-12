@@ -201,6 +201,9 @@ footer a:hover{color:var(--primary)}
 footer a:hover .ext{color:var(--primary)}
 .srcgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
   gap:8px 16px;margin:0 0 24px}
+.storegrid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.storerow{font-size:12px;color:var(--text-3)}
+.storerow b{color:var(--text-2);font-weight:500}
 
 :focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -264,7 +267,9 @@ footer a:hover .ext{color:var(--primary)}
 <footer>
   <h3>数据来源 · 可点开核对</h3>
   <div class="srcgrid" id="srclinks"></div>
-  <p>数据每周一、周三从各超市官网自动抓取更新。Carrefour 数据来自全国线上促销目录，鲁汶只有 Market 和 Express 店型，个别商品店里可能没有；Colruyt 价格取自 Lombaardenstraat 2 那家鲁汶店（Heverlee 店可能略有差异）。「第二件半价」这类多件优惠显示的是单件价，折扣力度按实际优惠折算，以店内标签为准。</p>
+  <p>数据周一到周四每天从各超市官网自动抓取更新。Carrefour 数据来自全国线上促销目录，鲁汶只有 Market 和 Express 店型，个别商品店里可能没有；Colruyt 价格取自 Lombaardenstraat 2 那家鲁汶店（Heverlee 店可能略有差异）。「第二件半价」这类多件优惠显示的是单件价，折扣力度按实际优惠折算，以店内标签为准。</p>
+  <h3>覆盖的鲁汶门店</h3>
+  <div class="srcgrid storegrid" id="storelist"></div>
   <p id="stamp"></p>
 </footer>
 </div>
@@ -404,6 +409,10 @@ const storeKeys = Object.keys(META.stores);
 $("#sub").textContent = `${storeKeys.map(storeLabel).join("、")} ${CN_COUNT[storeKeys.length] || storeKeys.length}家本周促销商品全收录。搜中文就行——输入「意面」也能搜到 pasta、spaghetti、Barilla。`;
 $("#srclinks").innerHTML = storeKeys.filter(k => SRC[k])
   .map(k => `<a href="${SRC[k]}" target="_blank" rel="noopener">${esc(storeLabel(k))}${IC_EXT}</a>`).join("");
+const SHOPS = META.shops || {};
+$("#storelist").innerHTML = storeKeys.filter(k => SHOPS[k]?.length)
+  .flatMap(k => SHOPS[k].map(s => `<div class="storerow"><b>${esc(s.name)}</b> · ${esc(s.address)}</div>`))
+  .join("");
 
 /* ---------- filter selects ---------- */
 const byCount = o => Object.entries(o).sort((a,b) => b[1]-a[1]);

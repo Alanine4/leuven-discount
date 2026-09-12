@@ -1,0 +1,39 @@
+{
+  "Colruyt": [
+    {"name": "Colruyt Leuven", "address": "Lombaardenstraat 2, 3000 Leuven", "note": "价格取自这家"},
+    {"name": "Colruyt Heverlee", "address": "Groenveldstraat 71, 3001 Heverlee", "note": ""},
+    {"name": "Colruyt Kessel-Lo", "address": "Tiensesteenweg 237, 3010 Kessel-Lo", "note": ""}
+  ],
+  "Delhaize": [
+    {"name": "AD Delhaize Leuven", "address": "Brusselsestraat 31, 3000 Leuven", "note": ""},
+    {"name": "Delhaize Heverlee", "address": "Tervuursevest 19, 3001 Heverlee", "note": ""},
+    {"name": "Delhaize Terbank", "address": "Tervuursesteenweg 154, 3001 Heverlee", "note": ""},
+    {"name": "Delhaize Kessel-Lo", "address": "Diestsesteenweg 545, 3010 Kessel-Lo", "note": ""},
+    {"name": "Delhaize Wilsele", "address": "Pastorijweg 1, 3012 Wilsele", "note": ""}
+  ],
+  "Albert Heijn": [
+    {"name": "Albert Heijn Leuven", "address": "Bondgenotenlaan 64, 3000 Leuven", "note": ""}
+  ],
+  "Carrefour Market": [
+    {"name": "Carrefour Market Heverlee", "address": "Tervuursevest 113, 3001 Heverlee", "note": ""},
+    {"name": "Carrefour Market Kessel-Lo", "address": "Koning Albertlaan 147, 3010 Kessel-Lo", "note": ""}
+  ],
+  "Carrefour Express": [
+    {"name": "Carrefour Express Naamsestraat", "address": "Naamsestraat 48, 3000 Leuven", "note": ""},
+    {"name": "Carrefour Express Tiensevest", "address": "Tiensevest 10, 3000 Leuven", "note": ""},
+    {"name": "Carrefour Express Brusselsestraat", "address": "Brusselsestraat 60, 3000 Leuven", "note": ""},
+    {"name": "Carrefour Express Weldadigheidsstraat", "address": "Weldadigheidsstraat 58-60, 3000 Leuven", "note": ""},
+    {"name": "Carrefour Express Burgemeestersstraat", "address": "Burgemeestersstraat 34, 3000 Leuven", "note": ""},
+    {"name": "Carrefour Express Rector De Somerplein", "address": "Rector De Somerplein 12, 3000 Leuven", "note": ""},
+    {"name": "Carrefour Express Kessel-Lo", "address": "Diestsesteenweg 104, 3010 Kessel-Lo", "note": ""},
+    {"name": "Carrefour Express Wilsele", "address": "Aarschotsesteenweg 264, 3012 Wilsele", "note": ""},
+    {"name": "Carrefour Express Heverlee", "address": "Naamsesteenweg 104, 3001 Heverlee", "note": ""}
+  ],
+  "ALDI": [
+    {"name": "ALDI Leuven", "address": "Slachthuislaan 3, 3000 Leuven", "note": ""}
+  ],
+  "Lidl": [
+    {"name": "Lidl Engels Plein", "address": "Engels Plein 26, 3000 Leuven", "note": ""},
+    {"name": "Lidl Vlinderlaan", "address": "Vlinderlaan 2, 3000 Leuven", "note": ""}
+  ]
+}
